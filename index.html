@@ -1526,7 +1526,7 @@
     </div>
 
     <!-- ============================================================
-         ABA: TROCA DE VERSÃO (nova)
+         ABA: TROCA DE VERSÃO
          ============================================================ -->
     <div id="tab-troca-versao" class="tab-pane">
         <div class="toolbar">
@@ -1712,6 +1712,24 @@
             <div class="summary-item" style="flex:1; min-width:180px;">
                 <span class="summary-label">📝 Observação Geral</span>
                 <input type="text" id="vc-general-obs" placeholder="Observação geral da troca" style="background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); color:#fff; padding:8px 12px; border-radius:6px; font-size:14px; font-weight:600; outline:none; margin-top:4px;">
+            </div>
+        </div>
+
+        <!-- ============================================================
+             NOVO: STATUS DA TROCA + MOTIVO DO ACOMPANHAMENTO
+             ============================================================ -->
+        <div class="version-summary-bar" style="margin-top:12px;">
+            <div class="summary-item" style="flex:1; min-width:220px;">
+                <span class="summary-label">✅ Status da Troca</span>
+                <select id="vc-status" style="background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); color:#fff; padding:8px 12px; border-radius:6px; font-size:14px; font-weight:600; outline:none; margin-top:4px; cursor:pointer;">
+                    <option value="APROVADO" style="color:#155724; background:#d4edda;">✅ APROVADO</option>
+                    <option value="APROVADO PARCIALMENTE" style="color:#856404; background:#fff3cd;">⚠️ APROVADO PARCIALMENTE</option>
+                    <option value="REPROVADO" style="color:#721c24; background:#f8d7da;">❌ REPROVADO</option>
+                </select>
+            </div>
+            <div class="summary-item" style="flex:2; min-width:280px;">
+                <span class="summary-label">📋 Motivo do Acompanhamento</span>
+                <input type="text" id="vc-acompanhamento" placeholder="Descreva o motivo do acompanhamento, se houver" style="background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); color:#fff; padding:8px 12px; border-radius:6px; font-size:14px; font-weight:600; outline:none; margin-top:4px;">
             </div>
         </div>
     </div>
@@ -3566,7 +3584,7 @@
                 'vc-new-machine', 'vc-new-product', 'vc-new-cycle', 'vc-new-qty',
                 'vc-new-min', 'vc-new-avg', 'vc-new-max', 'vc-new-inspector',
                 'vc-new-collaborator', 'vc-new-obs',
-                'vc-responsible', 'vc-general-obs'
+                'vc-responsible', 'vc-general-obs', 'vc-acompanhamento'
             ];
             ids.forEach(id => {
                 const el = document.getElementById(id);
@@ -3575,6 +3593,8 @@
                     else el.value = '';
                 }
             });
+            const statusSel = document.getElementById('vc-status');
+            if (statusSel) statusSel.selectedIndex = 0;
             removeVersionPhoto(null, 'current');
             removeVersionPhoto(null, 'new');
             updateVCSummary();
@@ -3618,10 +3638,22 @@
             };
             const responsible = getVCValue('vc-responsible');
             const generalObs = getVCValue('vc-general-obs');
+            const status = getVCValue('vc-status') || 'APROVADO';
+            const acompanhamento = getVCValue('vc-acompanhamento');
 
             const machineDisplay = (current.machine && newP.machine)
                 ? (current.machine === newP.machine ? current.machine : `${current.machine} → ${newP.machine}`)
                 : (current.machine || newP.machine || '—');
+
+            // Cores e ícones do status
+            let statusBg, statusBorder, statusColor, statusIcon;
+            if (status === 'APROVADO') {
+                statusBg = '#d4edda'; statusBorder = '#28a745'; statusColor = '#155724'; statusIcon = '✅';
+            } else if (status === 'APROVADO PARCIALMENTE') {
+                statusBg = '#fff3cd'; statusBorder = '#f0ad4e'; statusColor = '#856404'; statusIcon = '⚠️';
+            } else {
+                statusBg = '#f8d7da'; statusBorder = '#dc3545'; statusColor = '#721c24'; statusIcon = '❌';
+            }
 
             const photoCurrentHTML = versionPhotos.current
                 ? `<img src="${versionPhotos.current}" style="width:100%; height:auto; max-height:320px; object-fit:contain; display:block; border-radius:8px; background:#f5f5f5;">`
@@ -3653,7 +3685,7 @@
                         </div>
                     </div>
 
-                    <div style="background:#f0edf7; border-left:5px solid #f47b20; padding:14px 20px; border-radius:8px; margin-bottom:22px; display:flex; flex-wrap:wrap; gap:24px; justify-content:space-between;">
+                    <div style="background:#f0edf7; border-left:5px solid #f47b20; padding:14px 20px; border-radius:8px; margin-bottom:16px; display:flex; flex-wrap:wrap; gap:24px; justify-content:space-between;">
                         <div>
                             <div style="font-size:10px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">🏭 Máquina</div>
                             <div style="font-size:18px; font-weight:700; color:#241245;">${escapeHtml(machineDisplay)}</div>
@@ -3662,6 +3694,18 @@
                             <div style="font-size:10px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">👤 Responsável pela Troca</div>
                             <div style="font-size:18px; font-weight:700; color:#241245;">${escapeHtml(responsible || '—')}</div>
                         </div>
+                    </div>
+
+                    <div style="background:${statusBg}; border-left:5px solid ${statusBorder}; padding:14px 20px; border-radius:8px; margin-bottom:22px; display:flex; flex-wrap:wrap; gap:24px; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:10px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">✅ Status da Troca</div>
+                            <div style="font-size:18px; font-weight:700; color:${statusColor};">${statusIcon} ${status}</div>
+                        </div>
+                        ${acompanhamento ? `
+                        <div style="flex:1; min-width:250px;">
+                            <div style="font-size:10px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">📋 Motivo do Acompanhamento</div>
+                            <div style="font-size:14px; font-weight:600; color:#241245;">${escapeHtml(acompanhamento)}</div>
+                        </div>` : ''}
                     </div>
 
                     <div style="display:flex; gap:20px; align-items:stretch; margin-bottom:22px;">
