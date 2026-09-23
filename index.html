@@ -1357,6 +1357,51 @@
             width: 1000px;
             background: #ffffff;
         }
+
+        /* ============================================================
+           AUTO-FILL TOAST (feedback do auto-preenchimento)
+           ============================================================ */
+        .auto-fill-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #241245;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            z-index: 999998;
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 90vw;
+            text-align: center;
+        }
+        .auto-fill-toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .auto-fill-toast.success {
+            background: linear-gradient(135deg, #28a745, #48c964);
+        }
+        .auto-fill-toast.warning {
+            background: linear-gradient(135deg, #f0ad4e, #ec971f);
+        }
+        .auto-fill-toast.error {
+            background: linear-gradient(135deg, #dc3545, #e85d6b);
+        }
+        .version-input-group input.auto-filled {
+            border-color: #28a745 !important;
+            background: #f0fdf4 !important;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12) !important;
+            transition: all 0.4s ease;
+        }
     </style>
 </head>
 <body>
@@ -1580,8 +1625,8 @@
 
                 <div class="version-info-grid">
                     <div class="version-input-group full-width">
-                        <label>🏭 Máquina</label>
-                        <input type="text" id="vc-current-machine" placeholder="Ex: 790/2" oninput="updateVCSummary()">
+                        <label>🏭 Máquina <span style="font-weight:400; text-transform:none; color:#28a745;">(digite e saia do campo para preencher automaticamente)</span></label>
+                        <input type="text" id="vc-current-machine" placeholder="Ex: 790/2" oninput="updateVCSummary()" autocomplete="off">
                     </div>
                     <div class="version-input-group full-width">
                         <label>📦 Produto / Código</label>
@@ -1715,9 +1760,7 @@
             </div>
         </div>
 
-        <!-- ============================================================
-             NOVO: STATUS DA TROCA + MOTIVO DO ACOMPANHAMENTO
-             ============================================================ -->
+        <!-- STATUS DA TROCA + MOTIVO DO ACOMPANHAMENTO -->
         <div class="version-summary-bar" style="margin-top:12px;">
             <div class="summary-item" style="flex:1; min-width:220px;">
                 <span class="summary-label">✅ Status da Troca</span>
@@ -1806,6 +1849,7 @@
         const inspectorNamesSet = new Set();
         let hasUnsavedChanges = false;
         let isSaving = false;
+        let lastAutoFilledMachine = null;
 
         /* ============================================================
            HELPERS
@@ -3591,12 +3635,14 @@
                 if (el) {
                     if (el.tagName === 'SELECT') el.selectedIndex = 0;
                     else el.value = '';
+                    el.classList.remove('auto-filled');
                 }
             });
             const statusSel = document.getElementById('vc-status');
             if (statusSel) statusSel.selectedIndex = 0;
             removeVersionPhoto(null, 'current');
             removeVersionPhoto(null, 'new');
+            lastAutoFilledMachine = null;
             updateVCSummary();
         }
 
@@ -3605,6 +3651,138 @@
             return el ? el.value.trim() : '';
         }
 
+        /* ============================================================
+           AUTO-PREENCHIMENTO DA PEÇA ATUAL (SAINDO)
+           ============================================================ */
+        function showAutoFillToast(message, type = 'success') {
+            const existing = document.querySelector('.auto-fill-toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'auto-fill-toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            void toast.offsetWidth;
+            toast.classList.add('visible');
+
+            setTimeout(() => {
+                toast.classList.remove('visible');
+                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+            }, 2600);
+        }
+
+        function markFieldAsAutoFilled(el) {
+            if (!el) return;
+            el.classList.add('auto-filled');
+            setTimeout(() => el.classList.remove('auto-filled'), 2500);
+        }
+
+        async function autoFillCurrentMachineInfo() {
+            const machineInput = document.getElementById('vc-current-machine');
+            if (!machineInput) return;
+            const machineName = machineInput.value.trim();
+            if (!machineName) {
+                lastAutoFilledMachine = null;
+                return;
+            }
+
+            const upperName = machineName.toUpperCase();
+            if (lastAutoFilledMachine === upperName) return;
+
+            const dateInput = document.getElementById('selected-date');
+            const date = (dateInput && dateInput.value) ? dateInput.value : today;
+
+            try {
+                const docSnap = await db.collection(COLLECTION_NAME).doc(date).get();
+
+                if (!docSnap.exists) {
+                    showAutoFillToast(`📭 Nenhum dado encontrado para ${date.split('-').reverse().join('/')}`, 'warning');
+                    lastAutoFilledMachine = upperName;
+                    return;
+                }
+
+                const data = docSnap.data();
+                if (!data || !data.inspectors) {
+                    showAutoFillToast(`📭 Nenhuma máquina registrada em ${date.split('-').reverse().join('/')}`, 'warning');
+                    lastAutoFilledMachine = upperName;
+                    return;
+                }
+
+                let found = null;
+                let foundInspector = '';
+                let foundProduct = '';
+
+                Object.keys(data.inspectors).forEach(inspName => {
+                    if (found) return;
+                    const inspObj = data.inspectors[inspName];
+                    if (!inspObj || !inspObj.products) return;
+                    Object.keys(inspObj.products).forEach(prodKey => {
+                        if (found) return;
+                        const arr = inspObj.products[prodKey];
+                        if (!Array.isArray(arr)) return;
+                        arr.forEach(m => {
+                            if (found) return;
+                            if (m.machine && String(m.machine).trim().toUpperCase() === upperName) {
+                                found = m;
+                                foundInspector = inspName;
+                                foundProduct = prodKey;
+                            }
+                        });
+                    });
+                });
+
+                if (!found) {
+                    showAutoFillToast(`⚠️ Máquina "${machineName}" não encontrada em ${date.split('-').reverse().join('/')}`, 'warning');
+                    lastAutoFilledMachine = upperName;
+                    return;
+                }
+
+                const productEl = document.getElementById('vc-current-product');
+                const cycleEl = document.getElementById('vc-current-cycle');
+                const qtyEl = document.getElementById('vc-current-qty');
+                const minEl = document.getElementById('vc-current-min');
+                const avgEl = document.getElementById('vc-current-avg');
+                const maxEl = document.getElementById('vc-current-max');
+                const turnEl = document.getElementById('vc-current-turn');
+                const inspectorEl = document.getElementById('vc-current-inspector');
+                const collaboratorEl = document.getElementById('vc-current-collaborator');
+
+                if (productEl) { productEl.value = foundProduct || found.product || ''; markFieldAsAutoFilled(productEl); }
+                if (cycleEl) { cycleEl.value = found.cycle || ''; markFieldAsAutoFilled(cycleEl); }
+                if (turnEl) { turnEl.value = found.turn || 'T1'; markFieldAsAutoFilled(turnEl); }
+                if (inspectorEl) { inspectorEl.value = foundInspector || found.inspector || ''; markFieldAsAutoFilled(inspectorEl); }
+                if (collaboratorEl) { collaboratorEl.value = found.collaborator || ''; markFieldAsAutoFilled(collaboratorEl); }
+                if (minEl) { minEl.value = found.tolMin || ''; markFieldAsAutoFilled(minEl); }
+                if (avgEl) { avgEl.value = found.tolMid || ''; markFieldAsAutoFilled(avgEl); }
+                if (maxEl) { maxEl.value = found.tolMax || ''; markFieldAsAutoFilled(maxEl); }
+
+                if (qtyEl) {
+                    const rows = found.rows || [];
+                    let count = 0;
+                    rows.forEach(r => {
+                        if (r.m1 !== '' && r.m1 !== null && r.m1 !== undefined && !isNaN(parseFloat(r.m1))) count++;
+                        if (r.m3 !== '' && r.m3 !== null && r.m3 !== undefined && !isNaN(parseFloat(r.m3))) count++;
+                        if (r.m4 !== '' && r.m4 !== null && r.m4 !== undefined && !isNaN(parseFloat(r.m4))) count++;
+                    });
+                    qtyEl.value = count > 0 ? String(count) : '';
+                    markFieldAsAutoFilled(qtyEl);
+                }
+
+                lastAutoFilledMachine = upperName;
+                showAutoFillToast(`✅ Dados de "${machineName}" carregados automaticamente!`, 'success');
+                updateVCSummary();
+
+            } catch (err) {
+                console.error('Erro ao buscar dados da máquina:', err);
+                showAutoFillToast('❌ Erro ao buscar dados. Verifique a conexão.', 'error');
+                lastAutoFilledMachine = upperName;
+            }
+        }
+
+        /* ============================================================
+           BUILD PRINT HTML (TROCA DE VERSÃO)
+           ============================================================ */
         function buildVersionPrintHTML() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('pt-BR');
@@ -3645,7 +3823,6 @@
                 ? (current.machine === newP.machine ? current.machine : `${current.machine} → ${newP.machine}`)
                 : (current.machine || newP.machine || '—');
 
-            // Cores e ícones do status
             let statusBg, statusBorder, statusColor, statusIcon;
             if (status === 'APROVADO') {
                 statusBg = '#d4edda'; statusBorder = '#28a745'; statusColor = '#155724'; statusIcon = '✅';
@@ -3903,6 +4080,20 @@
             loadInspectorNames();
 
             updateVCSummary();
+
+            // Listener para auto-preenchimento ao sair do campo Máquina (peça atual)
+            const vcCurrentMachineInput = document.getElementById('vc-current-machine');
+            if (vcCurrentMachineInput) {
+                vcCurrentMachineInput.addEventListener('change', autoFillCurrentMachineInfo);
+                vcCurrentMachineInput.addEventListener('blur', autoFillCurrentMachineInfo);
+            }
+
+            // Reset do cache de auto-preenchimento quando a data mudar
+            if (sdInput) {
+                sdInput.addEventListener('change', function() {
+                    lastAutoFilledMachine = null;
+                });
+            }
         });
     </script>
 </body>
