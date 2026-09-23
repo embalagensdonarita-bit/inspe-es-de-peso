@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -1026,6 +1027,336 @@
                 font-size: 10px;
             }
         }
+
+        /* ============================================================
+           ABAS (TABS)
+           ============================================================ */
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .tab-btn {
+            padding: 13px 26px;
+            border: none;
+            background: #ffffff;
+            color: #3e2970;
+            border-radius: 10px 10px 0 0;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #f0edf7;
+            transform: translateY(-1px);
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #241245, #3e2970);
+            color: #ffffff;
+            border-bottom-color: #f47b20;
+            box-shadow: 0 4px 12px rgba(36, 18, 69, 0.25);
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+            animation: fadeSlideIn 0.3s ease;
+        }
+
+        /* ============================================================
+           TROCA DE VERSÃO
+           ============================================================ */
+        .version-change-grid {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            gap: 18px;
+            align-items: stretch;
+            margin-bottom: 24px;
+        }
+        .version-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            color: var(--accent-color);
+            font-weight: 700;
+            text-shadow: 0 4px 8px rgba(244, 123, 32, 0.35);
+            animation: arrowPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes arrowPulse {
+            0%, 100% { transform: translateX(0); opacity: 1; }
+            50% { transform: translateX(6px); opacity: 0.75; }
+        }
+        .version-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px 20px 22px;
+            box-shadow: var(--shadow-md);
+            border-top: 5px solid var(--secondary-color);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .version-card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        .version-card.current-card {
+            border-top-color: #dc3545;
+        }
+        .version-card.new-card {
+            border-top-color: #28a745;
+        }
+        .version-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+        .version-card.current-card::before {
+            background: #dc3545;
+        }
+        .version-card.new-card::before {
+            background: #28a745;
+        }
+        .version-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0edf7;
+            position: relative;
+            z-index: 1;
+        }
+        .version-card-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #241245;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .version-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fff;
+        }
+        .version-badge.outgoing {
+            background: linear-gradient(135deg, #dc3545, #e85d6b);
+        }
+        .version-badge.incoming {
+            background: linear-gradient(135deg, #28a745, #48c964);
+        }
+        .photo-upload-area {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            border: 2.5px dashed #c9b5ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: #fafbfc;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+            z-index: 1;
+        }
+        .photo-upload-area:hover {
+            border-color: var(--accent-color);
+            background: #fff8f2;
+            transform: scale(1.005);
+        }
+        .photo-upload-area.has-photo {
+            border-style: solid;
+            border-color: #3e2970;
+            background: #000;
+        }
+        .photo-upload-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .photo-upload-area .photo-placeholder {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            pointer-events: none;
+            padding: 20px;
+        }
+        .photo-upload-area .photo-placeholder .icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .photo-upload-area .photo-placeholder .hint {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+        .photo-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(220, 53, 69, 0.9);
+            color: #fff;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            transition: var(--transition);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .photo-remove-btn:hover {
+            background: #dc3545;
+            transform: scale(1.1);
+        }
+        .version-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .version-info-grid .full-width {
+            grid-column: 1 / -1;
+        }
+        .version-input-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+        .version-input-group input,
+        .version-input-group select,
+        .version-input-group textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1.5px solid var(--gray-border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fafbfc;
+            font-family: 'Roboto', sans-serif;
+            transition: var(--transition);
+            color: #241245;
+        }
+        .version-input-group input:focus,
+        .version-input-group select:focus,
+        .version-input-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(62, 41, 112, 0.08);
+        }
+        .version-input-group textarea {
+            resize: vertical;
+            min-height: 54px;
+        }
+        .version-summary-bar {
+            background: linear-gradient(135deg, #241245, #3e2970);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        .version-summary-bar::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(244, 123, 32, 0.2);
+            border-radius: 50%;
+        }
+        .version-summary-bar .summary-label {
+            font-size: 12px;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #c9b5ff;
+            font-weight: 600;
+        }
+        .version-summary-bar .summary-value {
+            font-size: 17px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .version-summary-bar .summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 900px) {
+            .version-change-grid {
+                grid-template-columns: 1fr;
+            }
+            .version-arrow {
+                transform: rotate(90deg);
+                font-size: 36px;
+                padding: 4px 0;
+            }
+            @keyframes arrowPulse {
+                0%, 100% { transform: rotate(90deg) translateX(0); }
+                50% { transform: rotate(90deg) translateX(6px); }
+            }
+        }
+        @media (max-width: 520px) {
+            .version-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Área de captura do print (fora da tela) */
+        #version-print-area {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 1000px;
+            background: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -1040,149 +1371,354 @@
         </div>
     </header>
 
-    <div class="toolbar">
-        <div class="toolbar-left">
-            <h3>📋 Inspeção de Peso</h3>
-            <small>Preencha os dados abaixo para cada máquina</small>
+    <!-- ============================================================
+         BARRA DE ABAS
+         ============================================================ -->
+    <div class="tab-bar">
+        <button type="button" class="tab-btn active" id="tab-btn-inspecao" onclick="switchTab('inspecao', this)">📋 Inspeção de Peso</button>
+        <button type="button" class="tab-btn" id="tab-btn-troca-versao" onclick="switchTab('troca-versao', this)">🔄 Troca de Versão</button>
+    </div>
+
+    <!-- ============================================================
+         ABA: INSPEÇÃO DE PESO (conteúdo original)
+         ============================================================ -->
+    <div id="tab-inspecao" class="tab-pane active">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <h3>📋 Inspeção de Peso</h3>
+                <small>Preencha os dados abaixo para cada máquina</small>
+            </div>
+            <div class="toolbar-buttons">
+                <button type="button" class="btn btn-outline" onclick="resetForm()">🆕 Nova Inspeção</button>
+                <button type="button" class="btn btn-accent" onclick="openCurrentDataReport()">📊 RELATORIO</button>
+                <button type="button" class="btn btn-warning" onclick="openPdfReportModal()">📅 PDF MENSAL</button>
+                <button type="button" class="btn btn-success" onclick="addMachineCard()">➕ Adicionar Máquina</button>
+                <button type="button" id="btn-save-daily" class="btn btn-primary" onclick="saveDailyData()">💾 Salvar Histórico do Dia</button>
+                <button type="button" id="btn-save-edits" class="btn btn-warning" onclick="saveEdits()" style="display:none;">💾 Salvar Alterações</button>
+                <button type="button" id="btn-toggle-history" class="btn btn-outline" onclick="toggleHistory()">📂 Histórico</button>
+            </div>
         </div>
-        <div class="toolbar-buttons">
-            <button type="button" class="btn btn-outline" onclick="resetForm()">🆕 Nova Inspeção</button>
-            <button type="button" class="btn btn-accent" onclick="openCurrentDataReport()">📊 RELATORIO</button>
-            <button type="button" class="btn btn-warning" onclick="openPdfReportModal()">📅 PDF MENSAL</button>
-            <button type="button" class="btn btn-success" onclick="addMachineCard()">➕ Adicionar Máquina</button>
-            <button type="button" id="btn-save-daily" class="btn btn-primary" onclick="saveDailyData()">💾 Salvar Histórico do Dia</button>
-            <button type="button" id="btn-save-edits" class="btn btn-warning" onclick="saveEdits()" style="display:none;">💾 Salvar Alterações</button>
-            <button type="button" id="btn-toggle-history" class="btn btn-outline" onclick="toggleHistory()">📂 Histórico</button>
+
+        <datalist id="inspector-list"></datalist>
+        <datalist id="product-list">
+            <option value="DA 08"></option>
+            <option value="D 540"></option>
+            <option value="D 560"></option>
+            <option value="D 630"></option>
+            <option value="D 640"></option>
+            <option value="D 645"></option>
+            <option value="D 650"></option>
+            <option value="D 681"></option>
+            <option value="D 695 BR"></option>
+            <option value="D 695 CR"></option>
+            <option value="D 695 PR"></option>
+            <option value="D 730"></option>
+            <option value="D 731"></option>
+            <option value="D 732"></option>
+            <option value="D 742P"></option>
+            <option value="D 742R"></option>
+            <option value="D 750P"></option>
+            <option value="D 750R"></option>
+            <option value="D 771P"></option>
+            <option value="D 771R"></option>
+            <option value="D30 R BR"></option>
+            <option value="D30 R PR"></option>
+            <option value="D32 H PR"></option>
+            <option value="D32 NYB PR"></option>
+            <option value="D32 NY PR"></option>
+            <option value="D32 RA BR"></option>
+            <option value="D32 RA PR"></option>
+            <option value="D32 RB BR"></option>
+            <option value="D32 RB PR"></option>
+            <option value="D32 R BR"></option>
+            <option value="D32 R PR"></option>
+            <option value="D35 RA BR"></option>
+            <option value="D35 RA PR"></option>
+            <option value="D35 RB BR"></option>
+            <option value="D35 RB PR"></option>
+            <option value="D37 RA BR"></option>
+            <option value="D37 RA PR"></option>
+            <option value="D37 RB BR"></option>
+            <option value="D37 RB PR"></option>
+            <option value="D38 R BR"></option>
+            <option value="D38 R PR"></option>
+            <option value="D40 R BR"></option>
+            <option value="D40 R PR"></option>
+            <option value="D50 NYA PR"></option>
+            <option value="D50 NYB PR"></option>
+            <option value="D50 NY PR"></option>
+            <option value="D50 NYM PR"></option>
+            <option value="D50 RA BR"></option>
+            <option value="D50 RA PR"></option>
+            <option value="D50 RB BR"></option>
+            <option value="D50 RB PR"></option>
+            <option value="D50 R BR"></option>
+            <option value="D50 R PR"></option>
+            <option value="D56 RA BR"></option>
+            <option value="D56 RA PR"></option>
+            <option value="D56 RB BR"></option>
+            <option value="D56 RB PR"></option>
+            <option value="D56 R BR"></option>
+            <option value="D56 R PR"></option>
+            <option value="D60 RA BR"></option>
+            <option value="D60 RA PR"></option>
+            <option value="D60 RB BR"></option>
+            <option value="D60 RB PR"></option>
+            <option value="D60 R BR"></option>
+            <option value="D60 R PR"></option>
+            <option value="D62 R BR"></option>
+            <option value="D62 R PR"></option>
+            <option value="D63 RA BR"></option>
+            <option value="D63 RA PR"></option>
+            <option value="D63 R BR"></option>
+            <option value="D63 R PR"></option>
+            <option value="D64 R BR"></option>
+            <option value="D64 R PR"></option>
+            <option value="D65 RB BR"></option>
+            <option value="D65 RB PR"></option>
+            <option value="D70 RB BR"></option>
+            <option value="D70 RB PR"></option>
+            <option value="D70 R BR"></option>
+            <option value="D70 R PR"></option>
+            <option value="D78 RB BR"></option>
+            <option value="D78 R BR"></option>
+            <option value="D78 R PR"></option>
+            <option value="D80 RA BR"></option>
+            <option value="D80 RA PR"></option>
+            <option value="D80 RB BR"></option>
+            <option value="D80 RB PR"></option>
+            <option value="DA 10"></option>
+            <option value="DA 12"></option>
+            <option value="DA 13"></option>
+            <option value="DA 14"></option>
+            <option value="DA 15"></option>
+            <option value="DA 16"></option>
+            <option value="DA 17"></option>
+            <option value="DA 18"></option>
+            <option value="DA 20"></option>
+            <option value="DA 88"></option>
+            <option value="DA 90"></option>
+            <option value="DA 91"></option>
+            <option value="DA 92"></option>
+            <option value="DA 94"></option>
+            <option value="D32 ATN BR"></option>
+            <option value="D32 ATN PR"></option>
+            <option value="D34"></option>
+            <option value="D34P"></option>
+        </datalist>
+
+        <div id="machines-container"></div>
+
+        <div id="history-section">
+            <div class="history-header">
+                <h3>📂 Histórico de Inspeções</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <input type="date" id="history-date-input" style="padding: 9px 12px; border: 1.5px solid #ccc; border-radius: 6px; font-weight: 500;">
+                    <button type="button" class="btn" onclick="loadHistory()">🔍 Consultar</button>
+                    <button type="button" class="btn btn-danger" onclick="clearHistory()">🗑️ Limpar Base</button>
+                    <button type="button" class="close-history-btn" onclick="hideHistory()" title="Fechar histórico">✕ Fechar</button>
+                </div>
+            </div>
+            <div id="history-results">
+                <p style="color: #888; text-align: center; padding: 20px;">Selecione uma data e clique em consultar para ver o histórico.</p>
+            </div>
         </div>
     </div>
 
-    <datalist id="inspector-list"></datalist>
-    <datalist id="product-list">
-        <option value="DA 08"></option>
-        <option value="D 540"></option>
-        <option value="D 560"></option>
-        <option value="D 630"></option>
-        <option value="D 640"></option>
-        <option value="D 645"></option>
-        <option value="D 650"></option>
-        <option value="D 681"></option>
-        <option value="D 695 BR"></option>
-        <option value="D 695 CR"></option>
-        <option value="D 695 PR"></option>
-        <option value="D 730"></option>
-        <option value="D 731"></option>
-        <option value="D 732"></option>
-        <option value="D 742P"></option>
-        <option value="D 742R"></option>
-        <option value="D 750P"></option>
-        <option value="D 750R"></option>
-        <option value="D 771P"></option>
-        <option value="D 771R"></option>
-        <option value="D30 R BR"></option>
-        <option value="D30 R PR"></option>
-        <option value="D32 H PR"></option>
-        <option value="D32 NYB PR"></option>
-        <option value="D32 NY PR"></option>
-        <option value="D32 RA BR"></option>
-        <option value="D32 RA PR"></option>
-        <option value="D32 RB BR"></option>
-        <option value="D32 RB PR"></option>
-        <option value="D32 R BR"></option>
-        <option value="D32 R PR"></option>
-        <option value="D35 RA BR"></option>
-        <option value="D35 RA PR"></option>
-        <option value="D35 RB BR"></option>
-        <option value="D35 RB PR"></option>
-        <option value="D37 RA BR"></option>
-        <option value="D37 RA PR"></option>
-        <option value="D37 RB BR"></option>
-        <option value="D37 RB PR"></option>
-        <option value="D38 R BR"></option>
-        <option value="D38 R PR"></option>
-        <option value="D40 R BR"></option>
-        <option value="D40 R PR"></option>
-        <option value="D50 NYA PR"></option>
-        <option value="D50 NYB PR"></option>
-        <option value="D50 NY PR"></option>
-        <option value="D50 NYM PR"></option>
-        <option value="D50 RA BR"></option>
-        <option value="D50 RA PR"></option>
-        <option value="D50 RB BR"></option>
-        <option value="D50 RB PR"></option>
-        <option value="D50 R BR"></option>
-        <option value="D50 R PR"></option>
-        <option value="D56 RA BR"></option>
-        <option value="D56 RA PR"></option>
-        <option value="D56 RB BR"></option>
-        <option value="D56 RB PR"></option>
-        <option value="D56 R BR"></option>
-        <option value="D56 R PR"></option>
-        <option value="D60 RA BR"></option>
-        <option value="D60 RA PR"></option>
-        <option value="D60 RB BR"></option>
-        <option value="D60 RB PR"></option>
-        <option value="D60 R BR"></option>
-        <option value="D60 R PR"></option>
-        <option value="D62 R BR"></option>
-        <option value="D62 R PR"></option>
-        <option value="D63 RA BR"></option>
-        <option value="D63 RA PR"></option>
-        <option value="D63 R BR"></option>
-        <option value="D63 R PR"></option>
-        <option value="D64 R BR"></option>
-        <option value="D64 R PR"></option>
-        <option value="D65 RB BR"></option>
-        <option value="D65 RB PR"></option>
-        <option value="D70 RB BR"></option>
-        <option value="D70 RB PR"></option>
-        <option value="D70 R BR"></option>
-        <option value="D70 R PR"></option>
-        <option value="D78 RB BR"></option>
-        <option value="D78 R BR"></option>
-        <option value="D78 R PR"></option>
-        <option value="D80 RA BR"></option>
-        <option value="D80 RA PR"></option>
-        <option value="D80 RB BR"></option>
-        <option value="D80 RB PR"></option>
-        <option value="DA 10"></option>
-        <option value="DA 12"></option>
-        <option value="DA 13"></option>
-        <option value="DA 14"></option>
-        <option value="DA 15"></option>
-        <option value="DA 16"></option>
-        <option value="DA 17"></option>
-        <option value="DA 18"></option>
-        <option value="DA 20"></option>
-        <option value="DA 88"></option>
-        <option value="DA 90"></option>
-        <option value="DA 91"></option>
-        <option value="DA 92"></option>
-        <option value="DA 94"></option>
-        <option value="D32 ATN BR"></option>
-        <option value="D32 ATN PR"></option>
-        <option value="D34"></option>
-        <option value="D34P"></option>
-    </datalist>
-
-    <div id="machines-container"></div>
-
-    <div id="history-section">
-        <div class="history-header">
-            <h3>📂 Histórico de Inspeções</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <input type="date" id="history-date-input" style="padding: 9px 12px; border: 1.5px solid #ccc; border-radius: 6px; font-weight: 500;">
-                <button type="button" class="btn" onclick="loadHistory()">🔍 Consultar</button>
-                <button type="button" class="btn btn-danger" onclick="clearHistory()">🗑️ Limpar Base</button>
-                <button type="button" class="close-history-btn" onclick="hideHistory()" title="Fechar histórico">✕ Fechar</button>
+    <!-- ============================================================
+         ABA: TROCA DE VERSÃO (nova)
+         ============================================================ -->
+    <div id="tab-troca-versao" class="tab-pane">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <h3>🔄 Troca de Versão</h3>
+                <small>Registre a troca com fotos e informações das peças</small>
+            </div>
+            <div class="toolbar-buttons">
+                <button type="button" class="btn btn-outline" onclick="clearVersionChange()">🆕 Limpar</button>
+                <button type="button" class="btn btn-accent" onclick="generateVersionPrint()">📸 Gerar Print para o Grupo</button>
             </div>
         </div>
-        <div id="history-results">
-            <p style="color: #888; text-align: center; padding: 20px;">Selecione uma data e clique em consultar para ver o histórico.</p>
+
+        <div class="version-summary-bar">
+            <div class="summary-item">
+                <span class="summary-label">🏭 Máquina</span>
+                <span class="summary-value" id="vc-summary-machine">—</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">📅 Data</span>
+                <span class="summary-value" id="vc-summary-date">—</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">🕐 Hora</span>
+                <span class="summary-value" id="vc-summary-time">—</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">👤 Responsável</span>
+                <span class="summary-value" id="vc-summary-responsible">—</span>
+            </div>
+        </div>
+
+        <div class="version-change-grid">
+            <!-- CARD: PEÇA ATUAL (SAINDO) -->
+            <div class="version-card current-card">
+                <div class="version-card-header">
+                    <span class="version-badge outgoing">SAINDO</span>
+                    <h3>🔴 Peça Atual</h3>
+                </div>
+
+                <div class="photo-upload-area" id="photo-area-current" onclick="triggerPhotoUpload('current')">
+                    <img id="photo-current-preview" style="display:none;" alt="Peça atual">
+                    <div class="photo-placeholder" id="photo-current-placeholder">
+                        <span class="icon">📷</span>
+                        <div><strong>Clique para adicionar foto</strong></div>
+                        <div class="hint">Câmera ou galeria — foto nítida da peça</div>
+                    </div>
+                    <button type="button" class="photo-remove-btn" id="photo-current-remove" style="display:none;" onclick="removeVersionPhoto(event, 'current')" title="Remover foto">✕</button>
+                </div>
+                <input type="file" id="photo-input-current" accept="image/*" capture="environment" style="display:none;" onchange="handleVersionPhoto(event, 'current')">
+
+                <div class="version-info-grid">
+                    <div class="version-input-group full-width">
+                        <label>🏭 Máquina</label>
+                        <input type="text" id="vc-current-machine" placeholder="Ex: 790/2" oninput="updateVCSummary()">
+                    </div>
+                    <div class="version-input-group full-width">
+                        <label>📦 Produto / Código</label>
+                        <input type="text" id="vc-current-product" placeholder="Ex: D50 R PR" list="product-list" autocomplete="off">
+                    </div>
+                    <div class="version-input-group">
+                        <label>⚡ Ciclo</label>
+                        <input type="text" id="vc-current-cycle" placeholder="Ex: 25.0">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔢 Qtd. Pesagens</label>
+                        <input type="text" id="vc-current-qty" placeholder="Ex: 30">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔻 Peso Mín.</label>
+                        <input type="text" id="vc-current-min" placeholder="Ex: 23,51">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🎯 Peso Médio</label>
+                        <input type="text" id="vc-current-avg" placeholder="Ex: 24,51">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔺 Peso Máx.</label>
+                        <input type="text" id="vc-current-max" placeholder="Ex: 25,11">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔄 Turno</label>
+                        <select id="vc-current-turn">
+                            <option value="T1">T1</option>
+                            <option value="T2">T2</option>
+                            <option value="T3">T3</option>
+                        </select>
+                    </div>
+                    <div class="version-input-group">
+                        <label>👤 Inspetor</label>
+                        <input type="text" id="vc-current-inspector" placeholder="Ex: MARILHA" list="inspector-list" autocomplete="off">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🧑 Colaborador</label>
+                        <input type="text" id="vc-current-collaborator" placeholder="Ex: 03">
+                    </div>
+                    <div class="version-input-group full-width">
+                        <label>📝 Observações</label>
+                        <textarea id="vc-current-obs" rows="2" placeholder="Observações sobre a peça atual..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETA -->
+            <div class="version-arrow">➜</div>
+
+            <!-- CARD: NOVA PEÇA (ENTRANDO) -->
+            <div class="version-card new-card">
+                <div class="version-card-header">
+                    <span class="version-badge incoming">ENTRANDO</span>
+                    <h3>🟢 Nova Peça</h3>
+                </div>
+
+                <div class="photo-upload-area" id="photo-area-new" onclick="triggerPhotoUpload('new')">
+                    <img id="photo-new-preview" style="display:none;" alt="Nova peça">
+                    <div class="photo-placeholder" id="photo-new-placeholder">
+                        <span class="icon">📷</span>
+                        <div><strong>Clique para adicionar foto</strong></div>
+                        <div class="hint">Câmera ou galeria — foto nítida da peça</div>
+                    </div>
+                    <button type="button" class="photo-remove-btn" id="photo-new-remove" style="display:none;" onclick="removeVersionPhoto(event, 'new')" title="Remover foto">✕</button>
+                </div>
+                <input type="file" id="photo-input-new" accept="image/*" capture="environment" style="display:none;" onchange="handleVersionPhoto(event, 'new')">
+
+                <div class="version-info-grid">
+                    <div class="version-input-group full-width">
+                        <label>🏭 Máquina</label>
+                        <input type="text" id="vc-new-machine" placeholder="Ex: 790/2" oninput="updateVCSummary()">
+                    </div>
+                    <div class="version-input-group full-width">
+                        <label>📦 Produto / Código</label>
+                        <input type="text" id="vc-new-product" placeholder="Ex: D56 R PR" list="product-list" autocomplete="off">
+                    </div>
+                    <div class="version-input-group">
+                        <label>⚡ Ciclo</label>
+                        <input type="text" id="vc-new-cycle" placeholder="Ex: 22.5">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔢 Qtd. Pesagens</label>
+                        <input type="text" id="vc-new-qty" placeholder="Ex: 30">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔻 Peso Mín.</label>
+                        <input type="text" id="vc-new-min" placeholder="Ex: 23,51">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🎯 Peso Médio</label>
+                        <input type="text" id="vc-new-avg" placeholder="Ex: 24,51">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔺 Peso Máx.</label>
+                        <input type="text" id="vc-new-max" placeholder="Ex: 25,11">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🔄 Turno</label>
+                        <select id="vc-new-turn">
+                            <option value="T1">T1</option>
+                            <option value="T2">T2</option>
+                            <option value="T3">T3</option>
+                        </select>
+                    </div>
+                    <div class="version-input-group">
+                        <label>👤 Inspetor</label>
+                        <input type="text" id="vc-new-inspector" placeholder="Ex: MARILHA" list="inspector-list" autocomplete="off">
+                    </div>
+                    <div class="version-input-group">
+                        <label>🧑 Colaborador</label>
+                        <input type="text" id="vc-new-collaborator" placeholder="Ex: 05">
+                    </div>
+                    <div class="version-input-group full-width">
+                        <label>📝 Observações</label>
+                        <textarea id="vc-new-obs" rows="2" placeholder="Observações sobre a nova peça..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="version-summary-bar" style="margin-top:0;">
+            <div class="summary-item" style="flex:1; min-width:180px;">
+                <span class="summary-label">👤 Responsável pela Troca</span>
+                <input type="text" id="vc-responsible" placeholder="Nome de quem realizou a troca" style="background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); color:#fff; padding:8px 12px; border-radius:6px; font-size:14px; font-weight:600; outline:none; margin-top:4px;" oninput="updateVCSummary()">
+            </div>
+            <div class="summary-item" style="flex:1; min-width:180px;">
+                <span class="summary-label">📝 Observação Geral</span>
+                <input type="text" id="vc-general-obs" placeholder="Observação geral da troca" style="background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3); color:#fff; padding:8px 12px; border-radius:6px; font-size:14px; font-weight:600; outline:none; margin-top:4px;">
+            </div>
         </div>
     </div>
 
     <div id="report-modal-container"></div>
     <div id="pdf-generation-container" style="position: absolute; left: -9999px; top: 0; width: 900px;"></div>
+    <div id="version-print-area"></div>
 
     <div id="pdf-report-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
         <div style="background:#fff; padding:30px; border-radius:12px; width:450px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
@@ -1234,8 +1770,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Habilita cache local do Firestore para economizar leituras no plano Spark.
-        // Se a persistência falhar (navegador sem suporte / múltiplas abas), o sistema continua funcionando normalmente.
         db.enablePersistence({ synchronizeTabs: true }).catch(err => {
             if (err && err.code) console.warn('Cache offline não habilitado:', err.code);
         });
@@ -1302,7 +1836,7 @@
         }
 
         /* ============================================================
-           DATALIST DE INSPETORES (com cache local para economizar leituras)
+           DATALIST DE INSPETORES
            ============================================================ */
         function loadInspectorNamesFromCache() {
             try {
@@ -1325,13 +1859,10 @@
         function saveInspectorNamesToCache() {
             try {
                 localStorage.setItem(INSPECTOR_CACHE_KEY, JSON.stringify(Array.from(inspectorNamesSet)));
-            } catch (err) {
-                // Ignora falha de quota
-            }
+            } catch (err) {}
         }
 
         async function loadInspectorNames() {
-            // Lê apenas os últimos N dias para economizar leituras do Firestore.
             try {
                 const limitDate = new Date();
                 limitDate.setDate(limitDate.getDate() - INSPECTOR_LOOKBACK_DAYS);
@@ -2225,7 +2756,6 @@
                     document.getElementById('history-section').classList.add('visible');
                     return;
                 }
-                // Firestore batch tem limite de 500 operações
                 const docs = snapshot.docs;
                 const CHUNK = 400;
                 for (let i = 0; i < docs.length; i += CHUNK) {
@@ -2932,6 +3462,342 @@
         function generateMonthlyPDF() { generateReportPDF(); }
 
         /* ============================================================
+           ABAS — NAVEGAÇÃO
+           ============================================================ */
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const pane = document.getElementById('tab-' + tabName);
+            if (pane) pane.classList.add('active');
+            if (btn) btn.classList.add('active');
+            else {
+                const fallback = document.getElementById('tab-btn-' + tabName);
+                if (fallback) fallback.classList.add('active');
+            }
+        }
+
+        /* ============================================================
+           TROCA DE VERSÃO — LÓGICA
+           ============================================================ */
+        const versionPhotos = { current: null, new: null };
+
+        function triggerPhotoUpload(side) {
+            const input = document.getElementById('photo-input-' + side);
+            if (input) input.click();
+        }
+
+        function handleVersionPhoto(event, side) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                alert('⚠️ Por favor, selecione um arquivo de imagem.');
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                versionPhotos[side] = dataUrl;
+                const img = document.getElementById('photo-' + side + '-preview');
+                const placeholder = document.getElementById('photo-' + side + '-placeholder');
+                const area = document.getElementById('photo-area-' + side);
+                const removeBtn = document.getElementById('photo-' + side + '-remove');
+                if (img) {
+                    img.src = dataUrl;
+                    img.style.display = 'block';
+                }
+                if (placeholder) placeholder.style.display = 'none';
+                if (area) area.classList.add('has-photo');
+                if (removeBtn) removeBtn.style.display = 'flex';
+            };
+            reader.onerror = function() {
+                alert('❌ Erro ao carregar a imagem. Tente novamente.');
+                event.target.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeVersionPhoto(event, side) {
+            if (event) event.stopPropagation();
+            versionPhotos[side] = null;
+            const img = document.getElementById('photo-' + side + '-preview');
+            const placeholder = document.getElementById('photo-' + side + '-placeholder');
+            const area = document.getElementById('photo-area-' + side);
+            const removeBtn = document.getElementById('photo-' + side + '-remove');
+            const input = document.getElementById('photo-input-' + side);
+            if (img) { img.src = ''; img.style.display = 'none'; }
+            if (placeholder) placeholder.style.display = 'block';
+            if (area) area.classList.remove('has-photo');
+            if (removeBtn) removeBtn.style.display = 'none';
+            if (input) input.value = '';
+        }
+
+        function updateVCSummary() {
+            const machineEl = document.getElementById('vc-summary-machine');
+            const dateEl = document.getElementById('vc-summary-date');
+            const timeEl = document.getElementById('vc-summary-time');
+            const respEl = document.getElementById('vc-summary-responsible');
+            const currentMachine = document.getElementById('vc-current-machine');
+            const newMachine = document.getElementById('vc-new-machine');
+            const responsible = document.getElementById('vc-responsible');
+
+            const m1 = currentMachine ? currentMachine.value.trim() : '';
+            const m2 = newMachine ? newMachine.value.trim() : '';
+            let machineDisplay = '—';
+            if (m1 && m2) machineDisplay = (m1 === m2) ? m1 : `${m1} → ${m2}`;
+            else if (m1) machineDisplay = m1;
+            else if (m2) machineDisplay = m2;
+
+            if (machineEl) machineEl.textContent = machineDisplay;
+            if (dateEl) dateEl.textContent = new Date().toLocaleDateString('pt-BR');
+            if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            if (respEl) {
+                const r = responsible ? responsible.value.trim() : '';
+                respEl.textContent = r || '—';
+            }
+        }
+
+        function clearVersionChange() {
+            if (!confirm('Limpar todos os campos da Troca de Versão?')) return;
+            const ids = [
+                'vc-current-machine', 'vc-current-product', 'vc-current-cycle', 'vc-current-qty',
+                'vc-current-min', 'vc-current-avg', 'vc-current-max', 'vc-current-inspector',
+                'vc-current-collaborator', 'vc-current-obs',
+                'vc-new-machine', 'vc-new-product', 'vc-new-cycle', 'vc-new-qty',
+                'vc-new-min', 'vc-new-avg', 'vc-new-max', 'vc-new-inspector',
+                'vc-new-collaborator', 'vc-new-obs',
+                'vc-responsible', 'vc-general-obs'
+            ];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                    else el.value = '';
+                }
+            });
+            removeVersionPhoto(null, 'current');
+            removeVersionPhoto(null, 'new');
+            updateVCSummary();
+        }
+
+        function getVCValue(id) {
+            const el = document.getElementById(id);
+            return el ? el.value.trim() : '';
+        }
+
+        function buildVersionPrintHTML() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR');
+            const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            const current = {
+                machine: getVCValue('vc-current-machine'),
+                product: getVCValue('vc-current-product'),
+                cycle: getVCValue('vc-current-cycle'),
+                qty: getVCValue('vc-current-qty'),
+                min: getVCValue('vc-current-min'),
+                avg: getVCValue('vc-current-avg'),
+                max: getVCValue('vc-current-max'),
+                turn: getVCValue('vc-current-turn'),
+                inspector: getVCValue('vc-current-inspector'),
+                collaborator: getVCValue('vc-current-collaborator'),
+                obs: getVCValue('vc-current-obs')
+            };
+            const newP = {
+                machine: getVCValue('vc-new-machine'),
+                product: getVCValue('vc-new-product'),
+                cycle: getVCValue('vc-new-cycle'),
+                qty: getVCValue('vc-new-qty'),
+                min: getVCValue('vc-new-min'),
+                avg: getVCValue('vc-new-avg'),
+                max: getVCValue('vc-new-max'),
+                turn: getVCValue('vc-new-turn'),
+                inspector: getVCValue('vc-new-inspector'),
+                collaborator: getVCValue('vc-new-collaborator'),
+                obs: getVCValue('vc-new-obs')
+            };
+            const responsible = getVCValue('vc-responsible');
+            const generalObs = getVCValue('vc-general-obs');
+
+            const machineDisplay = (current.machine && newP.machine)
+                ? (current.machine === newP.machine ? current.machine : `${current.machine} → ${newP.machine}`)
+                : (current.machine || newP.machine || '—');
+
+            const photoCurrentHTML = versionPhotos.current
+                ? `<img src="${versionPhotos.current}" style="width:100%; height:auto; max-height:320px; object-fit:contain; display:block; border-radius:8px; background:#f5f5f5;">`
+                : `<div style="width:100%; height:280px; display:flex; align-items:center; justify-content:center; background:#f5f5f5; border:2px dashed #ccc; border-radius:8px; color:#999; font-size:13px;">SEM FOTO</div>`;
+            const photoNewHTML = versionPhotos.new
+                ? `<img src="${versionPhotos.new}" style="width:100%; height:auto; max-height:320px; object-fit:contain; display:block; border-radius:8px; background:#f5f5f5;">`
+                : `<div style="width:100%; height:280px; display:flex; align-items:center; justify-content:center; background:#f5f5f5; border:2px dashed #ccc; border-radius:8px; color:#999; font-size:13px;">SEM FOTO</div>`;
+
+            function infoRow(label, value) {
+                return `<tr>
+                    <td style="padding:6px 10px; background:#f4f6f9; font-weight:700; font-size:11px; color:#555; border:1px solid #e0e0e0; width:42%; text-transform:uppercase; letter-spacing:0.3px;">${label}</td>
+                    <td style="padding:6px 10px; font-size:13px; color:#241245; border:1px solid #e0e0e0; font-weight:600;">${escapeHtml(value || '—')}</td>
+                </tr>`;
+            }
+
+            return `
+                <div style="font-family: 'Roboto', Arial, sans-serif; background:#ffffff; padding:30px; color:#241245;">
+                    <div style="background:linear-gradient(135deg,#241245,#3e2970); color:#fff; padding:22px 28px; border-radius:12px; margin-bottom:22px; position:relative; overflow:hidden;">
+                        <div style="position:absolute; top:-40px; right:-40px; width:160px; height:160px; background:rgba(244,123,32,0.18); border-radius:50%;"></div>
+                        <div style="position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                            <div>
+                                <div style="font-size:22px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Dona Rita Embalagens</div>
+                                <div style="font-size:12px; color:#c9b5ff; margin-top:2px;">Controle de Qualidade — Troca de Versão</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:13px; font-weight:600;">📅 ${dateStr}</div>
+                                <div style="font-size:13px; font-weight:600;">🕐 ${timeStr}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background:#f0edf7; border-left:5px solid #f47b20; padding:14px 20px; border-radius:8px; margin-bottom:22px; display:flex; flex-wrap:wrap; gap:24px; justify-content:space-between;">
+                        <div>
+                            <div style="font-size:10px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">🏭 Máquina</div>
+                            <div style="font-size:18px; font-weight:700; color:#241245;">${escapeHtml(machineDisplay)}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:10px; color:#666; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">👤 Responsável pela Troca</div>
+                            <div style="font-size:18px; font-weight:700; color:#241245;">${escapeHtml(responsible || '—')}</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:20px; align-items:stretch; margin-bottom:22px;">
+                        <div style="flex:1; background:#fff; border:2px solid #f4cccc; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:2px solid #f4cccc;">
+                                <span style="background:linear-gradient(135deg,#dc3545,#e85d6b); color:#fff; padding:4px 12px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:1px;">SAINDO</span>
+                                <span style="font-size:15px; font-weight:700; color:#721c24;">🔴 PEÇA ATUAL</span>
+                            </div>
+                            <div style="margin-bottom:12px;">${photoCurrentHTML}</div>
+                            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                                ${infoRow('📦 Produto', current.product)}
+                                ${infoRow('⚡ Ciclo', current.cycle)}
+                                ${infoRow('🔢 Qtd. Pesagens', current.qty)}
+                                ${infoRow('🔻 Peso Mín.', current.min)}
+                                ${infoRow('🎯 Peso Médio', current.avg)}
+                                ${infoRow('🔺 Peso Máx.', current.max)}
+                                ${infoRow('🔄 Turno', current.turn)}
+                                ${infoRow('👤 Inspetor', current.inspector)}
+                                ${infoRow('🧑 Colaborador', current.collaborator)}
+                                ${current.obs ? infoRow('📝 Obs.', current.obs) : ''}
+                            </table>
+                        </div>
+
+                        <div style="display:flex; align-items:center; justify-content:center; min-width:50px;">
+                            <div style="font-size:38px; color:#f47b20; font-weight:700;">➜</div>
+                        </div>
+
+                        <div style="flex:1; background:#fff; border:2px solid #a9d18e; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:2px solid #a9d18e;">
+                                <span style="background:linear-gradient(135deg,#28a745,#48c964); color:#fff; padding:4px 12px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:1px;">ENTRANDO</span>
+                                <span style="font-size:15px; font-weight:700; color:#155724;">🟢 NOVA PEÇA</span>
+                            </div>
+                            <div style="margin-bottom:12px;">${photoNewHTML}</div>
+                            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                                ${infoRow('📦 Produto', newP.product)}
+                                ${infoRow('⚡ Ciclo', newP.cycle)}
+                                ${infoRow('🔢 Qtd. Pesagens', newP.qty)}
+                                ${infoRow('🔻 Peso Mín.', newP.min)}
+                                ${infoRow('🎯 Peso Médio', newP.avg)}
+                                ${infoRow('🔺 Peso Máx.', newP.max)}
+                                ${infoRow('🔄 Turno', newP.turn)}
+                                ${infoRow('👤 Inspetor', newP.inspector)}
+                                ${infoRow('🧑 Colaborador', newP.collaborator)}
+                                ${newP.obs ? infoRow('📝 Obs.', newP.obs) : ''}
+                            </table>
+                        </div>
+                    </div>
+
+                    ${generalObs ? `
+                    <div style="background:#fefbf5; border-left:5px solid #f47b20; padding:14px 20px; border-radius:8px; margin-bottom:18px;">
+                        <div style="font-size:10px; color:#856404; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">📝 Observação Geral</div>
+                        <div style="font-size:13px; color:#241245; font-weight:500;">${escapeHtml(generalObs)}</div>
+                    </div>` : ''}
+
+                    <div style="text-align:center; font-size:10px; color:#999; padding-top:14px; border-top:1px solid #eee;">
+                        Documento gerado automaticamente pelo Sistema de Controle de Qualidade — Dona Rita Embalagens
+                    </div>
+                </div>
+            `;
+        }
+
+        function waitForImages(container) {
+            const imgs = container.querySelectorAll('img');
+            return Promise.all(Array.from(imgs).map(img => {
+                if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                return new Promise(res => {
+                    img.onload = res;
+                    img.onerror = res;
+                    setTimeout(res, 1500);
+                });
+            }));
+        }
+
+        async function generateVersionPrint() {
+            const printArea = document.getElementById('version-print-area');
+            if (!printArea) return;
+
+            const currentMachine = getVCValue('vc-current-machine');
+            const newMachine = getVCValue('vc-new-machine');
+
+            if (!currentMachine && !newMachine) {
+                alert('⚠️ Preencha pelo menos o campo "Máquina" em uma das peças antes de gerar o print.');
+                return;
+            }
+            if (!versionPhotos.current && !versionPhotos.new) {
+                const continuar = confirm('⚠️ Nenhuma foto foi adicionada. Deseja gerar o print mesmo assim?');
+                if (!continuar) return;
+            }
+
+            printArea.innerHTML = buildVersionPrintHTML();
+            showLoading('Gerando print...');
+
+            try {
+                await waitForImages(printArea);
+                await new Promise(r => setTimeout(r, 250));
+
+                if (typeof html2canvas === 'undefined') {
+                    throw new Error('Biblioteca html2canvas não carregada. Verifique a conexão com a internet.');
+                }
+
+                const canvas = await html2canvas(printArea, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    logging: false,
+                    windowWidth: 1000
+                });
+
+                await new Promise((resolve, reject) => {
+                    canvas.toBlob(blob => {
+                        if (!blob) { reject(new Error('Falha ao gerar imagem.')); return; }
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        const dateFile = new Date().toISOString().slice(0, 10);
+                        const machineFile = (currentMachine || newMachine || 'maquina').replace(/[^a-zA-Z0-9]/g, '_');
+                        a.href = url;
+                        a.download = `Troca_Versao_${machineFile}_${dateFile}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        setTimeout(() => URL.revokeObjectURL(url), 2000);
+                        resolve();
+                    }, 'image/png');
+                });
+
+                alert('✅ Print gerado com sucesso! O arquivo foi baixado.');
+            } catch (err) {
+                console.error('Erro ao gerar print:', err);
+                alert('❌ Erro ao gerar print.\n' + (err && err.message ? err.message : ''));
+            } finally {
+                hideLoading();
+                printArea.innerHTML = '';
+            }
+        }
+
+        /* ============================================================
            EVENTOS GLOBAIS
            ============================================================ */
         document.addEventListener('keydown', function(e) {
@@ -2969,7 +3835,6 @@
             }
         });
 
-        // Prevenir perda de dados ao fechar/atualizar
         window.addEventListener('beforeunload', function(e) {
             if (hasUnsavedChanges && document.querySelectorAll('.machine-card').length > 0) {
                 e.preventDefault();
@@ -2978,7 +3843,6 @@
             }
         });
 
-        // Inicialização
         window.addEventListener('load', function() {
             setDateForInputs();
             addMachineCard();
@@ -2991,10 +3855,10 @@
             if (sd) sd.style.display = 'inline-flex';
             if (sdInput) sdInput.disabled = false;
 
-            // Primeiro carrega do cache local (instantâneo)
             loadInspectorNamesFromCache();
-            // Depois atualiza em background (últimos 90 dias)
             loadInspectorNames();
+
+            updateVCSummary();
         });
     </script>
 </body>
