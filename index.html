@@ -2293,11 +2293,6 @@
         /* ============================================================
            ALERTA PISCANTE — SOMENTE QUANDO A MÉDIA GERAL (SOMA/QTD)
            FICA ACIMA DO MÁXIMO
-           Calcula a média de TODOS os valores lançados no cartão
-           (soma de todos os pesos dividida pela quantidade de medições)
-           e compara com o campo Máx. Se a média geral for maior que
-           o Máx, exibe alerta piscante. Valores individuais não
-           disparam o alerta.
            ============================================================ */
         function checkOutOfSpec(cardId) {
             const card = document.getElementById(cardId);
@@ -3859,20 +3854,36 @@
                 if (turnEl) { turnEl.value = found.turn || 'T1'; markFieldAsAutoFilled(turnEl); }
                 if (inspectorEl) { inspectorEl.value = foundInspector || found.inspector || ''; markFieldAsAutoFilled(inspectorEl); }
                 if (collaboratorEl) { collaboratorEl.value = found.collaborator || ''; markFieldAsAutoFilled(collaboratorEl); }
-                if (minEl) { minEl.value = found.tolMin || ''; markFieldAsAutoFilled(minEl); }
-                if (avgEl) { avgEl.value = found.tolMid || ''; markFieldAsAutoFilled(avgEl); }
-                if (maxEl) { maxEl.value = found.tolMax || ''; markFieldAsAutoFilled(maxEl); }
+
+                // ============================================================
+                // NOVO: Preenche Peso Mín./Médio/Máx. com os valores REAIS
+                // (mínimo, média e máximo) das medições da máquina.
+                // ============================================================
+                const rows = found.rows || [];
+                const allMeasurements = [];
+                rows.forEach(r => {
+                    [r.m1, r.m3, r.m4].forEach(v => {
+                        if (v !== '' && v !== null && v !== undefined) {
+                            const num = parseFloat(String(v).replace(',', '.'));
+                            if (!isNaN(num)) allMeasurements.push(num);
+                        }
+                    });
+                });
+
+                const fmt = (n) => n.toFixed(2).replace('.', ',');
 
                 if (qtyEl) {
-                    const rows = found.rows || [];
-                    let count = 0;
-                    rows.forEach(r => {
-                        if (r.m1 !== '' && r.m1 !== null && r.m1 !== undefined && !isNaN(parseFloat(r.m1))) count++;
-                        if (r.m3 !== '' && r.m3 !== null && r.m3 !== undefined && !isNaN(parseFloat(r.m3))) count++;
-                        if (r.m4 !== '' && r.m4 !== null && r.m4 !== undefined && !isNaN(parseFloat(r.m4))) count++;
-                    });
-                    qtyEl.value = count > 0 ? String(count) : '';
+                    qtyEl.value = allMeasurements.length > 0 ? String(allMeasurements.length) : '';
                     markFieldAsAutoFilled(qtyEl);
+                }
+
+                if (allMeasurements.length > 0) {
+                    const minVal = Math.min(...allMeasurements);
+                    const maxVal = Math.max(...allMeasurements);
+                    const avgVal = allMeasurements.reduce((a, b) => a + b, 0) / allMeasurements.length;
+                    if (minEl) { minEl.value = fmt(minVal); markFieldAsAutoFilled(minEl); }
+                    if (avgEl) { avgEl.value = fmt(avgVal); markFieldAsAutoFilled(avgEl); }
+                    if (maxEl) { maxEl.value = fmt(maxVal); markFieldAsAutoFilled(maxEl); }
                 }
 
                 lastAutoFilledMachine = upperName;
