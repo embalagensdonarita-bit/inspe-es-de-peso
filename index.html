@@ -509,6 +509,43 @@
         .stat-row .max-val {
             color: #a61e1e;
         }
+
+        /* ============================================================
+           ALERTA PISCANTE DE MÉDIA ACIMA DO MÁXIMO
+           ============================================================ */
+        @keyframes blinkAlert {
+            0%, 100% {
+                background-color: #f8d7da;
+                color: #721c24;
+                border-color: #dc3545;
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.55);
+            }
+            50% {
+                background-color: #dc3545;
+                color: #ffffff;
+                border-color: #721c24;
+                box-shadow: 0 0 14px 4px rgba(220, 53, 69, 0.75);
+            }
+        }
+        .machine-alert {
+            display: none;
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid #dc3545;
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            text-align: center;
+            animation: blinkAlert 1s infinite;
+            line-height: 1.5;
+        }
+        .machine-alert.visible {
+            display: block;
+        }
+
         #history-section {
             background: var(--card-bg);
             padding: 20px 24px;
@@ -2132,6 +2169,7 @@
                             </tfoot>
                         </table>
                     </div>
+                    <div class="machine-alert" id="${cardId}-alert"></div>
                 </div>
             `;
 
@@ -2252,6 +2290,73 @@
             });
         }
 
+        /* ============================================================
+           ALERTA PISCANTE — SOMENTE QUANDO A MÉDIA GERAL (SOMA/QTD)
+           FICA ACIMA DO MÁXIMO
+           Calcula a média de TODOS os valores lançados no cartão
+           (soma de todos os pesos dividida pela quantidade de medições)
+           e compara com o campo Máx. Se a média geral for maior que
+           o Máx, exibe alerta piscante. Valores individuais não
+           disparam o alerta.
+           ============================================================ */
+        function checkOutOfSpec(cardId) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            const alertEl = document.getElementById(cardId + '-alert');
+            if (!alertEl) return;
+
+            const maxEl = card.querySelector('.tol-max');
+            if (!maxEl) {
+                alertEl.classList.remove('visible');
+                alertEl.textContent = '';
+                return;
+            }
+
+            const tolMaxRaw = String(maxEl.value).replace(',', '.');
+            const tolMax = parseFloat(tolMaxRaw);
+
+            if (isNaN(tolMax)) {
+                alertEl.classList.remove('visible');
+                alertEl.textContent = '';
+                return;
+            }
+
+            const rows = card.querySelectorAll('.data-row');
+            let sum = 0;
+            let count = 0;
+
+            rows.forEach(row => {
+                if (row.style.display === 'none') return;
+                ['m1-val', 'm3-val', 'm4-val'].forEach(cls => {
+                    const input = row.querySelector('.' + cls);
+                    if (!input) return;
+                    const raw = String(input.value).replace(',', '.');
+                    const v = parseFloat(raw);
+                    if (raw.trim() === '' || isNaN(v)) return;
+                    sum += v;
+                    count++;
+                });
+            });
+
+            if (count === 0) {
+                alertEl.classList.remove('visible');
+                alertEl.textContent = '';
+                return;
+            }
+
+            const avg = sum / count;
+
+            if (avg <= tolMax) {
+                alertEl.classList.remove('visible');
+                alertEl.textContent = '';
+                return;
+            }
+
+            const fmt = (n) => n.toFixed(2).replace('.', ',');
+            alertEl.textContent = `🚨 ATENÇÃO — MÉDIA GERAL ACIMA DO MÁXIMO! | 📈 Média: ${fmt(avg)} > Máx: ${fmt(tolMax)}`;
+            alertEl.classList.add('visible');
+        }
+
         function updateStats(cardId) {
             const card = document.getElementById(cardId);
             if (!card) return;
@@ -2285,6 +2390,7 @@
             setEl('m3', calc(m3Values));
             setEl('m4', calc(m4Values));
             classifyWeight(cardId);
+            checkOutOfSpec(cardId);
         }
 
         /* ============================================================
