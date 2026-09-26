@@ -873,6 +873,136 @@
         .bar-chart-fill.success-fill {
             background: linear-gradient(90deg, #28a745, #48c964);
         }
+
+        /* ============================================================
+           GRÁFICO DE RANGE (MÍN / MÉDIA / MÁX)
+           ============================================================ */
+        .range-chart-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: #f8f7fc;
+            border-radius: 6px;
+            border: 1px dashed #d5cfe8;
+        }
+        .range-chart-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+        }
+        .range-chart-legend .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            display: inline-block;
+        }
+        .range-chart-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+        }
+        .range-chart-row:last-child {
+            border-bottom: none;
+        }
+        .range-chart-label {
+            min-width: 90px;
+            font-weight: 700;
+            font-size: 12px;
+            color: #241245;
+            text-align: right;
+        }
+        .range-chart-track-wrapper {
+            flex: 1;
+            position: relative;
+            height: 40px;
+            min-width: 200px;
+        }
+        .range-chart-track {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            transform: translateY(-50%);
+        }
+        .range-chart-range {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #f47b20 0%, #f59e4b 50%, #28a745 100%);
+            border-radius: 5px;
+            opacity: 0.8;
+        }
+        .range-chart-marker {
+            position: absolute;
+            top: 50%;
+            width: 18px;
+            height: 18px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+            z-index: 2;
+        }
+        .range-chart-tol {
+            position: absolute;
+            top: -8px;
+            width: 2px;
+            height: 26px;
+            background: #241245;
+            opacity: 0.35;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        /* ============================================================
+           CHIPS DE VALORES (medidos + referência empilhados)
+           ============================================================ */
+        .range-chart-values {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+            min-width: 260px;
+            align-items: flex-end;
+        }
+        .range-chart-values .row-values {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        .range-chart-values .rv {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #f4f6f9;
+            white-space: nowrap;
+            font-weight: 600;
+            color: #241245;
+        }
+        .range-chart-values .rv-min { background: #fff3cd; color: #856404; }
+        .range-chart-values .rv-avg { background: #e2e3ff; color: #241245; }
+        .range-chart-values .rv-max { background: #f8d7da; color: #721c24; }
+        .range-chart-values .rv-ref-min { background: #fce4d6; color: #d35400; border: 1px dashed #f4b084; }
+        .range-chart-values .rv-ref-mid { background: #d9ead3; color: #1e7e34; border: 1px dashed #a9d18e; }
+        .range-chart-values .rv-ref-max { background: #f4cccc; color: #a61e1e; border: 1px dashed #ea9999; }
+
         .dash-table-wrapper {
             overflow-x: auto;
             border-radius: 8px;
@@ -2997,23 +3127,110 @@
                 html += `</div>`;
             }
 
-            html += `<div class="dash-section-title">📊 Média Geral por Máquina</div>`;
+            /* ============================================================
+               GRÁFICO: MÉDIA GERAL POR MÁQUINA
+               Linha 1 = REFERÊNCIA (Mín/Ideal/Máx)
+               Linha 2 = MEDIDOS (Mín/Média/Máx)
+               ============================================================ */
+            html += `<div class="dash-section-title">📊 Média Geral por Máquina — Referência (linha 1) e Medidos (linha 2)</div>`;
+            html += `<div class="range-chart-legend">
+                <span><span class="dot" style="background:#f47b20;"></span> Faixa mín–máx (medidos)</span>
+                <span><span class="dot" style="background:#3e2970;"></span> Média (medidos)</span>
+                <span><span style="display:inline-block; width:2px; height:16px; background:#241245; opacity:0.35;"></span> Limite de tolerância</span>
+                <span>📌 Ref. (produto) &nbsp;|&nbsp; 🔻 🎯 🔺 Medidos</span>
+            </div>`;
             html += `<div class="bar-chart-container">`;
+
             machines.forEach(m => {
-                const avg = m.totalAverage;
-                const width = avg > 0 ? Math.min((avg / 30) * 100, 100) : 3;
+                // Coletar TODAS as medições da máquina
+                const allMachineVals = [];
+                m.rows.forEach(r => {
+                    ['m1', 'm3', 'm4'].forEach(k => {
+                        const v = r[k];
+                        if (v !== '' && v !== null && v !== undefined) {
+                            const num = parseFloat(String(v).replace(',', '.'));
+                            if (!isNaN(num)) allMachineVals.push(num);
+                        }
+                    });
+                });
+
                 const tolMin = parseFloat(String(m.tolMin).replace(',', '.'));
                 const tolMax = parseFloat(String(m.tolMax).replace(',', '.'));
-                let fillClass = 'success-fill';
-                if (!isNaN(tolMin) && !isNaN(tolMax) && avg > 0) {
-                    if (avg < tolMin) fillClass = 'danger-fill';
-                    else if (avg === tolMin) fillClass = 'warning-fill';
-                    else if (avg <= tolMax) fillClass = 'success-fill';
-                    else fillClass = 'danger-fill';
+                const tolMid = parseFloat(String(m.tolMid).replace(',', '.'));
+                const avg = m.totalAverage;
+
+                if (allMachineVals.length === 0) {
+                    html += `<div class="range-chart-row">
+                        <div class="range-chart-label">${escapeHtml(m.machine || '?')}</div>
+                        <div class="range-chart-track-wrapper">
+                            <div style="position:absolute; top:50%; left:8px; transform:translateY(-50%); font-size:11px; color:#999;">Sem medições registradas</div>
+                        </div>
+                        <div class="range-chart-values">
+                            <div class="row-values"><span class="rv">—</span></div>
+                        </div>
+                        <span style="font-size:11px;color:#888;min-width:70px;">${escapeHtml(m.product || 'sem produto')}</span>
+                    </div>`;
+                    return;
                 }
-                html += `<div class="bar-chart-row">
-                    <div class="bar-chart-label">${escapeHtml(m.machine || '?')}</div>
-                    <div class="bar-chart-track"><div class="bar-chart-fill ${fillClass}" style="width:${Math.max(width,3)}%;">${avg > 0 ? avg.toFixed(3).replace('.',',') : '—'}</div></div>
+
+                const dataMin = Math.min(...allMachineVals);
+                const dataMax = Math.max(...allMachineVals);
+
+                // Escala: engloba tolerância e dados com folga
+                const refMin = !isNaN(tolMin) ? Math.min(tolMin, dataMin) : dataMin;
+                const refMax = !isNaN(tolMax) ? Math.max(tolMax, dataMax) : dataMax;
+                const pad = Math.max((refMax - refMin) * 0.08, 0.1);
+                const scaleMin = refMin - pad;
+                const scaleMax = refMax + pad;
+                const range = (scaleMax - scaleMin) || 1;
+                const pct = (v) => Math.max(0, Math.min(100, ((v - scaleMin) / range) * 100));
+
+                const minPct = pct(dataMin);
+                const maxPct = pct(dataMax);
+                const avgPct = pct(avg);
+                const tolMinPct = !isNaN(tolMin) ? pct(tolMin) : null;
+                const tolMaxPct = !isNaN(tolMax) ? pct(tolMax) : null;
+                const tolMidPct = !isNaN(tolMid) ? pct(tolMid) : null;
+
+                let markerColor = '#3e2970';
+                if (!isNaN(tolMin) && avg < tolMin) markerColor = '#dc3545';
+                else if (!isNaN(tolMax) && avg > tolMax) markerColor = '#dc3545';
+                else if (!isNaN(tolMin) && Math.abs(avg - tolMin) < 0.0001) markerColor = '#f0ad4e';
+
+                // Chips de REFERÊNCIA (do produto: mín / ideal / máx)
+                const refMinHTML = !isNaN(tolMin)
+                    ? `<span class="rv rv-ref-min" title="Mínimo da Referência (Produto)">📌 Ref 🔻 ${tolMin.toFixed(2).replace('.',',')}</span>`
+                    : '';
+                const refMidHTML = !isNaN(tolMid)
+                    ? `<span class="rv rv-ref-mid" title="Média da Referência (Ideal do Produto)">📌 Ref 🎯 ${tolMid.toFixed(2).replace('.',',')}</span>`
+                    : '';
+                const refMaxHTML = !isNaN(tolMax)
+                    ? `<span class="rv rv-ref-max" title="Máximo da Referência (Produto)">📌 Ref 🔺 ${tolMax.toFixed(2).replace('.',',')}</span>`
+                    : '';
+
+                html += `<div class="range-chart-row">
+                    <div class="range-chart-label">${escapeHtml(m.machine || '?')}</div>
+                    <div class="range-chart-track-wrapper">
+                        <div class="range-chart-track">
+                            ${tolMinPct !== null ? `<div class="range-chart-tol" style="left:${tolMinPct}%;" title="Mín tolerância: ${m.tolMin}"></div>` : ''}
+                            ${tolMidPct !== null ? `<div class="range-chart-tol" style="left:${tolMidPct}%; background:#1e7e34; opacity:0.55;" title="Ideal: ${m.tolMid}"></div>` : ''}
+                            ${tolMaxPct !== null ? `<div class="range-chart-tol" style="left:${tolMaxPct}%;" title="Máx tolerância: ${m.tolMax}"></div>` : ''}
+                            <div class="range-chart-range" style="left:${minPct}%; width:${Math.max(maxPct - minPct, 1.5)}%;"></div>
+                            <div class="range-chart-marker" style="left:${avgPct}%; background:${markerColor};" title="Média medida: ${avg.toFixed(3).replace('.',',')}"></div>
+                        </div>
+                    </div>
+                    <div class="range-chart-values">
+                        <div class="row-values">
+                            ${refMinHTML}
+                            ${refMidHTML}
+                            ${refMaxHTML}
+                        </div>
+                        <div class="row-values">
+                            <span class="rv rv-min" title="Mínimo medido">🔻 ${dataMin.toFixed(2).replace('.',',')}</span>
+                            <span class="rv rv-avg" style="color:${markerColor};" title="Média medida">🎯 ${avg.toFixed(3).replace('.',',')}</span>
+                            <span class="rv rv-max" title="Máximo medido">🔺 ${dataMax.toFixed(2).replace('.',',')}</span>
+                        </div>
+                    </div>
                     <span style="font-size:11px;color:#888;min-width:70px;">${escapeHtml(m.product || 'sem produto')}</span>
                 </div>`;
             });
@@ -3529,18 +3746,56 @@
                 html += `</div>`;
             }
 
-            html += `<h3 style="color:#241245; margin-top:20px;">📊 Média Geral por Produto</h3>`;
+            /* ============================================================
+               GRÁFICO PDF MENSAL: MÉDIA POR PRODUTO — COM MÍN/MÉDIA/MÁX
+               ============================================================ */
+            html += `<h3 style="color:#241245; margin-top:20px;">📊 Média Geral por Produto (Mín / Média / Máx)</h3>`;
+            html += `<div style="display:flex; flex-wrap:wrap; gap:16px; font-size:11px; color:#555; margin-bottom:10px; padding:8px 12px; background:#f8f7fc; border-radius:6px; border:1px dashed #d5cfe8;">
+                <span style="display:inline-flex; align-items:center; gap:5px; font-weight:600;"><span style="width:12px; height:12px; border-radius:50%; background:#f47b20; display:inline-block;"></span> Faixa mín–máx</span>
+                <span style="display:inline-flex; align-items:center; gap:5px; font-weight:600;"><span style="width:12px; height:12px; border-radius:50%; background:#3e2970; display:inline-block;"></span> Média</span>
+                <span>🔻 Mín &nbsp;|&nbsp; 🎯 Média &nbsp;|&nbsp; 🔺 Máx</span>
+            </div>`;
             html += `<div style="margin-bottom:20px;">`;
             const sortedProducts = Object.keys(productSummary).sort();
             sortedProducts.forEach(prodKey => {
                 const s = productSummary[prodKey];
                 const prodAvg = s.values.length > 0 ? s.values.reduce((a, b) => a + b, 0) / s.values.length : 0;
-                const width = prodAvg > 0 ? Math.min((prodAvg / 30) * 100, 100) : 3;
-                const fillColor = prodAvg < 23.51 ? '#dc3545' : prodAvg <= 25.11 ? '#28a745' : '#dc3545';
-                html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
-                    <div style="min-width:100px; text-align:right; font-weight:bold; font-size:11px;">${escapeHtml(prodKey)}</div>
-                    <div style="flex:1; background:#e9ecef; border-radius:10px; height:20px; overflow:hidden;">
-                        <div style="height:100%; background:${fillColor}; width:${width}%; display:flex; align-items:center; justify-content:flex-end; padding-right:8px; font-size:10px; color:#fff; font-weight:bold;">${prodAvg ? prodAvg.toFixed(3).replace('.',',') : '—'}</div>
+                const prodMin = s.values.length > 0 ? Math.min(...s.values) : 0;
+                const prodMax = s.values.length > 0 ? Math.max(...s.values) : 0;
+
+                // Escala de referência: usa 23,51 e 25,11 como tolerância padrão
+                const refMin = Math.min(23.51, prodMin);
+                const refMax = Math.max(25.11, prodMax);
+                const pad = Math.max((refMax - refMin) * 0.08, 0.1);
+                const scaleMin = refMin - pad;
+                const scaleMax = refMax + pad;
+                const range = (scaleMax - scaleMin) || 1;
+                const pct = (v) => Math.max(0, Math.min(100, ((v - scaleMin) / range) * 100));
+
+                const minPct = pct(prodMin);
+                const maxPct = pct(prodMax);
+                const avgPct = pct(prodAvg);
+                const tolMinPct = pct(23.51);
+                const tolMaxPct = pct(25.11);
+
+                let markerColor = '#3e2970';
+                if (prodAvg < 23.51) markerColor = '#dc3545';
+                else if (prodAvg > 25.11) markerColor = '#dc3545';
+
+                html += `<div style="display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid #f0f0f0; flex-wrap:wrap;">
+                    <div style="min-width:90px; text-align:right; font-weight:bold; font-size:12px; color:#241245;">${escapeHtml(prodKey)}</div>
+                    <div style="flex:1; position:relative; height:40px; min-width:200px;">
+                        <div style="position:absolute; top:50%; left:0; right:0; height:10px; background:#e9ecef; border-radius:5px; transform:translateY(-50%);">
+                            <div style="position:absolute; top:-8px; left:${tolMinPct}%; width:2px; height:26px; background:#241245; opacity:0.35; transform:translateX(-50%);"></div>
+                            <div style="position:absolute; top:-8px; left:${tolMaxPct}%; width:2px; height:26px; background:#241245; opacity:0.35; transform:translateX(-50%);"></div>
+                            <div style="position:absolute; top:0; height:100%; left:${minPct}%; width:${Math.max(maxPct - minPct, 1.5)}%; background:linear-gradient(90deg,#f47b20 0%,#f59e4b 50%,#28a745 100%); border-radius:5px; opacity:0.8;"></div>
+                            <div style="position:absolute; top:50%; left:${avgPct}%; width:18px; height:18px; background:${markerColor}; border:3px solid #fff; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; font-size:11px; min-width:240px; justify-content:flex-end; flex-wrap:wrap;">
+                        <span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:4px; background:#fff3cd; color:#856404; font-weight:600; white-space:nowrap;">🔻 ${prodMin.toFixed(2).replace('.',',')}</span>
+                        <span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:4px; background:#e2e3ff; color:${markerColor}; font-weight:700; white-space:nowrap;">🎯 ${prodAvg.toFixed(3).replace('.',',')}</span>
+                        <span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:4px; background:#f8d7da; color:#721c24; font-weight:600; white-space:nowrap;">🔺 ${prodMax.toFixed(2).replace('.',',')}</span>
                     </div>
                 </div>`;
             });
