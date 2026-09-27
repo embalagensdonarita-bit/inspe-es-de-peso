@@ -3468,6 +3468,7 @@
                             const totalAvg = m.totalAverage || 0;
                             const cavity = m.cavity || 10;
                             const tolMin = m.tolMin || '23,51';
+                            const tolMid = m.tolMid || '24,51';
                             const tolMax = m.tolMax || '25,11';
                             const rows = m.rows || [];
                             let measurementCount = 0;
@@ -3491,7 +3492,7 @@
                             }
                             allMachines.push({
                                 date, machine: machineName, inspector, product, turn, status,
-                                totalAvg: realAvg, measurementCount, cavity, rows, tolMin, tolMax
+                                totalAvg: realAvg, measurementCount, cavity, rows, tolMin, tolMid, tolMax
                             });
                         });
                     });
@@ -3502,89 +3503,154 @@
             const uniqueProducts = [...uniqueProductsSet];
 
             let html = `
-                <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+                <div style="font-family: Arial, sans-serif; color: #333; padding: 10px 20px;">
                     <style>
                         .page-break { page-break-before: always; }
                         .avoid-break { page-break-inside: avoid; }
                         table { page-break-inside: auto; }
                         tr { page-break-inside: avoid; }
+                        .pdf-chip {
+                            display: inline-block;
+                            padding: 2px 6px;
+                            border-radius: 4px;
+                            font-size: 9px;
+                            font-weight: 600;
+                            margin: 1px;
+                            white-space: nowrap;
+                        }
                     </style>
-                    <h2 style="text-align:center; color: #241245;">📊 Relatório ${escapeHtml(label)}</h2>
-                    <p style="text-align:center; color:#555;">Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;">
-                        <div style="background:#f0edf7; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#241245;">${allMachines.length}</div>
-                            <div style="font-size:11px; color:#666;">Máquinas</div>
+                    <h2 style="text-align:center; color: #241245; margin: 0 0 4px 0;">📊 Relatório ${escapeHtml(label)}</h2>
+                    <p style="text-align:center; color:#555; margin: 0 0 12px 0; font-size: 11px;">Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:14px;">
+                        <div style="background:#f0edf7; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#241245; line-height:1;">${allMachines.length}</div>
+                            <div style="font-size:10px; color:#666;">Máquinas</div>
                         </div>
-                        <div style="background:#d4edda; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#155724;">${approvedCount}</div>
-                            <div style="font-size:11px; color:#666;">Aprovadas</div>
+                        <div style="background:#d4edda; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#155724; line-height:1;">${approvedCount}</div>
+                            <div style="font-size:10px; color:#666;">Aprovadas</div>
                         </div>
-                        <div style="background:#f8d7da; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#721c24;">${rejectedCount}</div>
-                            <div style="font-size:11px; color:#666;">Reprovadas</div>
+                        <div style="background:#f8d7da; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#721c24; line-height:1;">${rejectedCount}</div>
+                            <div style="font-size:10px; color:#666;">Reprovadas</div>
                         </div>
-                        <div style="background:#d1ecf1; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#0c5460;">${totalMeasurements}</div>
-                            <div style="font-size:11px; color:#666;">Medições</div>
+                        <div style="background:#d1ecf1; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#0c5460; line-height:1;">${totalMeasurements}</div>
+                            <div style="font-size:10px; color:#666;">Medições</div>
                         </div>
-                        <div style="background:#fff3cd; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#856404;">${overallAvg.toFixed(3).replace('.',',')}</div>
-                            <div style="font-size:11px; color:#666;">Média Geral</div>
+                        <div style="background:#fff3cd; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#856404; line-height:1;">${overallAvg.toFixed(3).replace('.',',')}</div>
+                            <div style="font-size:10px; color:#666;">Média Geral</div>
                         </div>
-                        <div style="background:#fce4d6; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#d35400;">${uniqueProducts.length}</div>
-                            <div style="font-size:11px; color:#666;">Produtos Únicos</div>
+                        <div style="background:#fce4d6; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#d35400; line-height:1;">${uniqueProducts.length}</div>
+                            <div style="font-size:10px; color:#666;">Produtos Únicos</div>
                         </div>
                     </div>`;
 
             if (uniqueProducts.length > 0) {
-                html += `<h3 style="color:#241245; margin-top:10px;">📦 Produtos Encontrados</h3>`;
-                html += `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">`;
+                html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📦 Produtos Encontrados</h3>`;
+                html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">`;
                 uniqueProducts.forEach(p => {
-                    html += `<span style="background:#f0edf7; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600; color:#241245;">${escapeHtml(p)}</span>`;
+                    html += `<span style="background:#f0edf7; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:600; color:#241245;">${escapeHtml(p)}</span>`;
                 });
                 html += `</div>`;
             }
 
-            html += `<h3 style="color:#241245; margin-top:20px;">📋 Resumo de Máquinas</h3>`;
-            html += `<table style="width:100%; border-collapse: collapse; font-size:12px; margin-bottom:20px;">
+            /* ============================================================
+               GRÁFICO: MÉDIA POR MÁQUINA — REFERÊNCIA + MEDIDOS
+               ============================================================ */
+            html += `<div class="avoid-break" style="margin-bottom:14px;">`;
+            html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Máquina — Referência (linha 1) e Medidos (linha 2)</h3>`;
+            html += `<div style="background:#f8f7fc; padding:6px 10px; border-radius:6px; border:1px dashed #d5cfe8; font-size:9px; color:#555; margin-bottom:10px;">
+                <span style="font-weight:600; margin-right:10px;">📌 Ref. (produto) — linha 1 &nbsp;|&nbsp; 🔻 🎯 🔺 Medidos — linha 2</span>
+            </div>`;
+
+            allMachines.forEach(m => {
+                const tolMinNum = parseFloat(String(m.tolMin).replace(',', '.'));
+                const tolMidNum = parseFloat(String(m.tolMid).replace(',', '.'));
+                const tolMaxNum = parseFloat(String(m.tolMax).replace(',', '.'));
+
+                const allVals = [];
+                (m.rows || []).forEach(r => {
+                    ['m1','m3','m4'].forEach(k => {
+                        const v = r[k];
+                        if (v !== '' && v !== null && v !== undefined) {
+                            const num = parseFloat(String(v).replace(',', '.'));
+                            if (!isNaN(num)) allVals.push(num);
+                        }
+                    });
+                });
+
+                const dataMin = allVals.length > 0 ? Math.min(...allVals) : 0;
+                const dataMax = allVals.length > 0 ? Math.max(...allVals) : 0;
+                const dataAvg = m.totalAvg || 0;
+
+                let markerColor = '#3e2970';
+                if (!isNaN(tolMinNum) && dataAvg < tolMinNum) markerColor = '#dc3545';
+                else if (!isNaN(tolMaxNum) && dataAvg > tolMaxNum) markerColor = '#dc3545';
+                else if (!isNaN(tolMinNum) && Math.abs(dataAvg - tolMinNum) < 0.0001) markerColor = '#f0ad4e';
+
+                const fmt2 = (n) => isNaN(n) ? '—' : n.toFixed(2).replace('.', ',');
+                const fmt3 = (n) => isNaN(n) ? '—' : n.toFixed(3).replace('.', ',');
+
+                const refMinChip = !isNaN(tolMinNum) ? `<span class="pdf-chip" style="background:#fce4d6; color:#d35400; border:1px dashed #f4b084;">📌 Ref 🔻 ${fmt2(tolMinNum)}</span>` : '';
+                const refMidChip = !isNaN(tolMidNum) ? `<span class="pdf-chip" style="background:#d9ead3; color:#1e7e34; border:1px dashed #a9d18e;">📌 Ref 🎯 ${fmt2(tolMidNum)}</span>` : '';
+                const refMaxChip = !isNaN(tolMaxNum) ? `<span class="pdf-chip" style="background:#f4cccc; color:#a61e1e; border:1px dashed #ea9999;">📌 Ref 🔺 ${fmt2(tolMaxNum)}</span>` : '';
+
+                const medMinChip = `<span class="pdf-chip" style="background:#fff3cd; color:#856404;">🔻 ${fmt2(dataMin)}</span>`;
+                const medAvgChip = `<span class="pdf-chip" style="background:#e2e3ff; color:${markerColor};">🎯 ${fmt3(dataAvg)}</span>`;
+                const medMaxChip = `<span class="pdf-chip" style="background:#f8d7da; color:#721c24;">🔺 ${fmt2(dataMax)}</span>`;
+
+                html += `<div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #eee; flex-wrap:wrap;">
+                    <div style="min-width:70px; font-weight:bold; font-size:11px; color:#241245; text-align:right;">${escapeHtml(m.machine)}</div>
+                    <div style="flex:1; min-width:240px; text-align:right;">
+                        <div style="margin-bottom:2px;">${refMinChip}${refMidChip}${refMaxChip}</div>
+                        <div>${medMinChip}${medAvgChip}${medMaxChip}</div>
+                    </div>
+                    <div style="font-size:10px; color:#888; min-width:70px;">${escapeHtml(m.product)}</div>
+                </div>`;
+            });
+            html += `</div>`;
+
+            html += `<h3 style="color:#241245; margin: 12px 0 6px 0; font-size: 13px;">📋 Resumo de Máquinas</h3>`;
+            html += `<table style="width:100%; border-collapse: collapse; font-size:11px; margin-bottom:14px;">
                 <thead>
                     <tr style="background:#241245; color:#fff;">
-                        <th style="padding:6px; border:1px solid #ccc;">Data</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Máquina</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Inspetor</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Produto</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Turno</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Status</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Cavidade</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Medições</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Média Geral</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Data</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Máquina</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Inspetor</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Produto</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Turno</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Status</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Cavidade</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Medições</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Média Geral</th>
                     </tr>
                 </thead>
                 <tbody>`;
             allMachines.forEach(m => {
                 html += `<tr>
-                    <td style="padding:5px; border:1px solid #ccc;">${m.date.split('-').reverse().join('/')}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${escapeHtml(m.machine)}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${escapeHtml(m.inspector)}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${escapeHtml(m.product)}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${escapeHtml(m.turn)}</td>
-                    <td style="padding:5px; border:1px solid #ccc; color:${m.status==='APROVADO'?'#155724':'#721c24'}; font-weight:bold;">${escapeHtml(m.status)}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${m.cavity}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${m.measurementCount}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${m.totalAvg ? m.totalAvg.toFixed(3).replace('.',',') : '—'}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${m.date.split('-').reverse().join('/')}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${escapeHtml(m.machine)}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${escapeHtml(m.inspector)}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${escapeHtml(m.product)}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${escapeHtml(m.turn)}</td>
+                    <td style="padding:4px; border:1px solid #ccc; color:${m.status==='APROVADO'?'#155724':'#721c24'}; font-weight:bold;">${escapeHtml(m.status)}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${m.cavity}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${m.measurementCount}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${m.totalAvg ? m.totalAvg.toFixed(3).replace('.',',') : '—'}</td>
                 </tr>`;
             });
             html += `</tbody></table>`;
 
-            html += `<h3 style="color:#241245; margin-top:20px;">🔍 Detalhamento das Medições</h3>`;
+            html += `<h3 style="color:#241245; margin: 12px 0 6px 0; font-size: 13px;">🔍 Detalhamento das Medições</h3>`;
             allMachines.forEach(m => {
                 const minTol = parseFloat(String(m.tolMin).replace(',', '.'));
                 const maxTol = parseFloat(String(m.tolMax).replace(',', '.'));
-                html += `<div class="avoid-break" style="margin-bottom:20px;"><h4 style="color:#241245;">Máquina: ${escapeHtml(m.machine)} - Produto: ${escapeHtml(m.product)}</h4>`;
-                html += `<table style="width:100%; border-collapse:collapse; font-size:11px;">
-                    <thead><tr style="background:#241245; color:#fff;"><th style="padding:4px; border:1px solid #ccc;">Cavidade</th><th style="padding:4px; border:1px solid #ccc;">M1</th><th style="padding:4px; border:1px solid #ccc;">M3</th><th style="padding:4px; border:1px solid #ccc;">M4</th></tr></thead>
+                html += `<div class="avoid-break" style="margin-bottom:14px;"><h4 style="color:#241245; font-size:12px; margin: 0 0 4px 0;">Máquina: ${escapeHtml(m.machine)} - Produto: ${escapeHtml(m.product)}</h4>`;
+                html += `<table style="width:100%; border-collapse:collapse; font-size:10px;">
+                    <thead><tr style="background:#241245; color:#fff;"><th style="padding:3px; border:1px solid #ccc;">Cavidade</th><th style="padding:3px; border:1px solid #ccc;">M1</th><th style="padding:3px; border:1px solid #ccc;">M3</th><th style="padding:3px; border:1px solid #ccc;">M4</th></tr></thead>
                     <tbody>`;
                 const cavityCount = Math.min(m.cavity || 10, 10);
                 for (let i = 0; i < cavityCount; i++) {
@@ -3602,20 +3668,20 @@
                     const colM3 = clsM3 === 'weight-ok' ? '#155724' : clsM3 === 'weight-min' ? '#856404' : (clsM3 === 'weight-low' || clsM3 === 'weight-high') ? '#721c24' : '#333';
                     const colM4 = clsM4 === 'weight-ok' ? '#155724' : clsM4 === 'weight-min' ? '#856404' : (clsM4 === 'weight-low' || clsM4 === 'weight-high') ? '#721c24' : '#333';
                     html += `<tr>
-                        <td style="padding:4px; border:1px solid #ccc;">${i + 1}</td>
-                        <td style="padding:4px; border:1px solid #ccc; background:${bgM1}; color:${colM1};">${valM1 !== '' && !isNaN(valM1) ? valM1.toFixed(3).replace('.',',') : '—'}</td>
-                        <td style="padding:4px; border:1px solid #ccc; background:${bgM3}; color:${colM3};">${valM3 !== '' && !isNaN(valM3) ? valM3.toFixed(3).replace('.',',') : '—'}</td>
-                        <td style="padding:4px; border:1px solid #ccc; background:${bgM4}; color:${colM4};">${valM4 !== '' && !isNaN(valM4) ? valM4.toFixed(3).replace('.',',') : '—'}</td>
+                        <td style="padding:3px; border:1px solid #ccc;">${i + 1}</td>
+                        <td style="padding:3px; border:1px solid #ccc; background:${bgM1}; color:${colM1};">${valM1 !== '' && !isNaN(valM1) ? valM1.toFixed(3).replace('.',',') : '—'}</td>
+                        <td style="padding:3px; border:1px solid #ccc; background:${bgM3}; color:${colM3};">${valM3 !== '' && !isNaN(valM3) ? valM3.toFixed(3).replace('.',',') : '—'}</td>
+                        <td style="padding:3px; border:1px solid #ccc; background:${bgM4}; color:${colM4};">${valM4 !== '' && !isNaN(valM4) ? valM4.toFixed(3).replace('.',',') : '—'}</td>
                     </tr>`;
                 }
                 html += `</tbody></table></div>`;
             });
 
             if (problems.length > 0) {
-                html += `<h3 style="color:#dc3545; margin-top:20px;">⚠️ Problemas Registrados</h3>`;
-                html += `<ul style="list-style:none; padding:0;">`;
+                html += `<h3 style="color:#dc3545; margin: 12px 0 6px 0; font-size: 13px;">⚠️ Problemas Registrados</h3>`;
+                html += `<ul style="list-style:none; padding:0; margin: 0; font-size: 11px;">`;
                 problems.forEach(p => {
-                    html += `<li style="margin-bottom:5px;"><strong>${p.date.split('-').reverse().join('/')} - ${escapeHtml(p.machine)} (${escapeHtml(p.product)}):</strong> ${escapeHtml(p.problema)}</li>`;
+                    html += `<li style="margin-bottom:4px;"><strong>${p.date.split('-').reverse().join('/')} - ${escapeHtml(p.machine)} (${escapeHtml(p.product)}):</strong> ${escapeHtml(p.problema)}</li>`;
                 });
                 html += `</ul>`;
             }
@@ -3667,11 +3733,26 @@
                                 });
                             });
                             if (!productSummary[prodKey]) {
-                                productSummary[prodKey] = { values: [], machines: 0, approved: 0, rejected: 0 };
+                                productSummary[prodKey] = { values: [], machines: 0, approved: 0, rejected: 0, tolMin: null, tolMid: null, tolMax: null };
                             }
                             productSummary[prodKey].machines++;
                             if (m.status === 'APROVADO') productSummary[prodKey].approved++;
                             else productSummary[prodKey].rejected++;
+
+                            // Captura tolerâncias do produto (usa a primeira não-nula)
+                            if (productSummary[prodKey].tolMin === null && m.tolMin) {
+                                const n = parseFloat(String(m.tolMin).replace(',', '.'));
+                                if (!isNaN(n)) productSummary[prodKey].tolMin = n;
+                            }
+                            if (productSummary[prodKey].tolMid === null && m.tolMid) {
+                                const n = parseFloat(String(m.tolMid).replace(',', '.'));
+                                if (!isNaN(n)) productSummary[prodKey].tolMid = n;
+                            }
+                            if (productSummary[prodKey].tolMax === null && m.tolMax) {
+                                const n = parseFloat(String(m.tolMax).replace(',', '.'));
+                                if (!isNaN(n)) productSummary[prodKey].tolMax = n;
+                            }
+
                             rows.forEach(r => {
                                 [r.m1, r.m3, r.m4].forEach(v => {
                                     if (v !== '' && !isNaN(parseFloat(v))) {
@@ -3701,61 +3782,69 @@
             const uniqueProducts = [...allProductsSet];
 
             let html = `
-                <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+                <div style="font-family: Arial, sans-serif; color: #333; padding: 10px 20px;">
                     <style>
                         .page-break { page-break-before: always; }
                         .avoid-break { page-break-inside: avoid; }
                         table { page-break-inside: auto; }
                         tr { page-break-inside: avoid; }
+                        .pdf-chip {
+                            display: inline-block;
+                            padding: 2px 6px;
+                            border-radius: 4px;
+                            font-size: 9px;
+                            font-weight: 600;
+                            margin: 1px;
+                            white-space: nowrap;
+                        }
                     </style>
-                    <h2 style="text-align:center; color: #241245;">📊 Relatório ${escapeHtml(label)}</h2>
-                    <p style="text-align:center; color:#555;">Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;">
-                        <div style="background:#f0edf7; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#241245;">${totalMachines}</div>
-                            <div style="font-size:11px; color:#666;">Máquinas</div>
+                    <h2 style="text-align:center; color: #241245; margin: 0 0 4px 0;">📊 Relatório ${escapeHtml(label)}</h2>
+                    <p style="text-align:center; color:#555; margin: 0 0 12px 0; font-size: 11px;">Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:14px;">
+                        <div style="background:#f0edf7; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#241245; line-height:1;">${totalMachines}</div>
+                            <div style="font-size:10px; color:#666;">Máquinas</div>
                         </div>
-                        <div style="background:#d4edda; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#155724;">${totalApproved}</div>
-                            <div style="font-size:11px; color:#666;">Aprovadas</div>
+                        <div style="background:#d4edda; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#155724; line-height:1;">${totalApproved}</div>
+                            <div style="font-size:10px; color:#666;">Aprovadas</div>
                         </div>
-                        <div style="background:#f8d7da; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#721c24;">${totalRejected}</div>
-                            <div style="font-size:11px; color:#666;">Reprovadas</div>
+                        <div style="background:#f8d7da; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#721c24; line-height:1;">${totalRejected}</div>
+                            <div style="font-size:10px; color:#666;">Reprovadas</div>
                         </div>
-                        <div style="background:#d1ecf1; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#0c5460;">${totalMeasurements}</div>
-                            <div style="font-size:11px; color:#666;">Medições</div>
+                        <div style="background:#d1ecf1; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#0c5460; line-height:1;">${totalMeasurements}</div>
+                            <div style="font-size:10px; color:#666;">Medições</div>
                         </div>
-                        <div style="background:#fff3cd; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#856404;">${overallAvg.toFixed(3).replace('.',',')}</div>
-                            <div style="font-size:11px; color:#666;">Média Geral</div>
+                        <div style="background:#fff3cd; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#856404; line-height:1;">${overallAvg.toFixed(3).replace('.',',')}</div>
+                            <div style="font-size:10px; color:#666;">Média Geral</div>
                         </div>
-                        <div style="background:#fce4d6; padding:10px 15px; border-radius:8px; text-align:center; min-width:100px;">
-                            <div style="font-size:24px; font-weight:bold; color:#d35400;">${uniqueProducts.length}</div>
-                            <div style="font-size:11px; color:#666;">Produtos Únicos</div>
+                        <div style="background:#fce4d6; padding:6px 12px; border-radius:8px; text-align:center; min-width:80px;">
+                            <div style="font-size:20px; font-weight:bold; color:#d35400; line-height:1;">${uniqueProducts.length}</div>
+                            <div style="font-size:10px; color:#666;">Produtos Únicos</div>
                         </div>
                     </div>`;
 
             if (uniqueProducts.length > 0) {
-                html += `<h3 style="color:#241245; margin-top:10px;">📦 Produtos Encontrados no Mês</h3>`;
-                html += `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;">`;
+                html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📦 Produtos Encontrados no Mês</h3>`;
+                html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">`;
                 uniqueProducts.forEach(p => {
-                    html += `<span style="background:#f0edf7; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600; color:#241245;">${escapeHtml(p)}</span>`;
+                    html += `<span style="background:#f0edf7; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:600; color:#241245;">${escapeHtml(p)}</span>`;
                 });
                 html += `</div>`;
             }
 
             /* ============================================================
-               GRÁFICO PDF MENSAL: MÉDIA POR PRODUTO — COM MÍN/MÉDIA/MÁX
+               GRÁFICO PDF MENSAL: POR PRODUTO — REFERÊNCIA + MEDIDOS
                ============================================================ */
-            html += `<h3 style="color:#241245; margin-top:20px;">📊 Média Geral por Produto (Mín / Média / Máx)</h3>`;
-            html += `<div style="display:flex; flex-wrap:wrap; gap:16px; font-size:11px; color:#555; margin-bottom:10px; padding:8px 12px; background:#f8f7fc; border-radius:6px; border:1px dashed #d5cfe8;">
-                <span style="display:inline-flex; align-items:center; gap:5px; font-weight:600;"><span style="width:12px; height:12px; border-radius:50%; background:#f47b20; display:inline-block;"></span> Faixa mín–máx</span>
-                <span style="display:inline-flex; align-items:center; gap:5px; font-weight:600;"><span style="width:12px; height:12px; border-radius:50%; background:#3e2970; display:inline-block;"></span> Média</span>
-                <span>🔻 Mín &nbsp;|&nbsp; 🎯 Média &nbsp;|&nbsp; 🔺 Máx</span>
+            html += `<div class="avoid-break" style="margin-bottom:14px;">`;
+            html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Produto — Referência (linha 1) e Medidos (linha 2)</h3>`;
+            html += `<div style="background:#f8f7fc; padding:6px 10px; border-radius:6px; border:1px dashed #d5cfe8; font-size:9px; color:#555; margin-bottom:10px;">
+                <span style="font-weight:600; margin-right:10px;">📌 Ref. (produto) — linha 1 &nbsp;|&nbsp; 🔻 🎯 🔺 Medidos — linha 2</span>
             </div>`;
-            html += `<div style="margin-bottom:20px;">`;
+
             const sortedProducts = Object.keys(productSummary).sort();
             sortedProducts.forEach(prodKey => {
                 const s = productSummary[prodKey];
@@ -3763,55 +3852,47 @@
                 const prodMin = s.values.length > 0 ? Math.min(...s.values) : 0;
                 const prodMax = s.values.length > 0 ? Math.max(...s.values) : 0;
 
-                // Escala de referência: usa 23,51 e 25,11 como tolerância padrão
-                const refMin = Math.min(23.51, prodMin);
-                const refMax = Math.max(25.11, prodMax);
-                const pad = Math.max((refMax - refMin) * 0.08, 0.1);
-                const scaleMin = refMin - pad;
-                const scaleMax = refMax + pad;
-                const range = (scaleMax - scaleMin) || 1;
-                const pct = (v) => Math.max(0, Math.min(100, ((v - scaleMin) / range) * 100));
-
-                const minPct = pct(prodMin);
-                const maxPct = pct(prodMax);
-                const avgPct = pct(prodAvg);
-                const tolMinPct = pct(23.51);
-                const tolMaxPct = pct(25.11);
+                const tolMinNum = s.tolMin;
+                const tolMidNum = s.tolMid;
+                const tolMaxNum = s.tolMax;
 
                 let markerColor = '#3e2970';
-                if (prodAvg < 23.51) markerColor = '#dc3545';
-                else if (prodAvg > 25.11) markerColor = '#dc3545';
+                if (tolMinNum !== null && prodAvg < tolMinNum) markerColor = '#dc3545';
+                else if (tolMaxNum !== null && prodAvg > tolMaxNum) markerColor = '#dc3545';
 
-                html += `<div style="display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid #f0f0f0; flex-wrap:wrap;">
-                    <div style="min-width:90px; text-align:right; font-weight:bold; font-size:12px; color:#241245;">${escapeHtml(prodKey)}</div>
-                    <div style="flex:1; position:relative; height:40px; min-width:200px;">
-                        <div style="position:absolute; top:50%; left:0; right:0; height:10px; background:#e9ecef; border-radius:5px; transform:translateY(-50%);">
-                            <div style="position:absolute; top:-8px; left:${tolMinPct}%; width:2px; height:26px; background:#241245; opacity:0.35; transform:translateX(-50%);"></div>
-                            <div style="position:absolute; top:-8px; left:${tolMaxPct}%; width:2px; height:26px; background:#241245; opacity:0.35; transform:translateX(-50%);"></div>
-                            <div style="position:absolute; top:0; height:100%; left:${minPct}%; width:${Math.max(maxPct - minPct, 1.5)}%; background:linear-gradient(90deg,#f47b20 0%,#f59e4b 50%,#28a745 100%); border-radius:5px; opacity:0.8;"></div>
-                            <div style="position:absolute; top:50%; left:${avgPct}%; width:18px; height:18px; background:${markerColor}; border:3px solid #fff; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 2px 6px rgba(0,0,0,0.25);"></div>
-                        </div>
+                const fmt2 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(2).replace('.', ',');
+                const fmt3 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(3).replace('.', ',');
+
+                const refMinChip = tolMinNum !== null ? `<span class="pdf-chip" style="background:#fce4d6; color:#d35400; border:1px dashed #f4b084;">📌 Ref 🔻 ${fmt2(tolMinNum)}</span>` : '';
+                const refMidChip = tolMidNum !== null ? `<span class="pdf-chip" style="background:#d9ead3; color:#1e7e34; border:1px dashed #a9d18e;">📌 Ref 🎯 ${fmt2(tolMidNum)}</span>` : '';
+                const refMaxChip = tolMaxNum !== null ? `<span class="pdf-chip" style="background:#f4cccc; color:#a61e1e; border:1px dashed #ea9999;">📌 Ref 🔺 ${fmt2(tolMaxNum)}</span>` : '';
+
+                const medMinChip = `<span class="pdf-chip" style="background:#fff3cd; color:#856404;">🔻 ${fmt2(prodMin)}</span>`;
+                const medAvgChip = `<span class="pdf-chip" style="background:#e2e3ff; color:${markerColor};">🎯 ${fmt3(prodAvg)}</span>`;
+                const medMaxChip = `<span class="pdf-chip" style="background:#f8d7da; color:#721c24;">🔺 ${fmt2(prodMax)}</span>`;
+
+                html += `<div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #eee; flex-wrap:wrap;">
+                    <div style="min-width:70px; font-weight:bold; font-size:11px; color:#241245; text-align:right;">${escapeHtml(prodKey)}</div>
+                    <div style="flex:1; min-width:240px; text-align:right;">
+                        <div style="margin-bottom:2px;">${refMinChip}${refMidChip}${refMaxChip}</div>
+                        <div>${medMinChip}${medAvgChip}${medMaxChip}</div>
                     </div>
-                    <div style="display:flex; gap:8px; font-size:11px; min-width:240px; justify-content:flex-end; flex-wrap:wrap;">
-                        <span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:4px; background:#fff3cd; color:#856404; font-weight:600; white-space:nowrap;">🔻 ${prodMin.toFixed(2).replace('.',',')}</span>
-                        <span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:4px; background:#e2e3ff; color:${markerColor}; font-weight:700; white-space:nowrap;">🎯 ${prodAvg.toFixed(3).replace('.',',')}</span>
-                        <span style="display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:4px; background:#f8d7da; color:#721c24; font-weight:600; white-space:nowrap;">🔺 ${prodMax.toFixed(2).replace('.',',')}</span>
-                    </div>
+                    <div style="font-size:10px; color:#888; min-width:70px;">${s.machines} máq.</div>
                 </div>`;
             });
             html += `</div>`;
 
-            html += `<h3 style="color:#241245; margin-top:20px;">📋 Resumo Diário</h3>`;
-            html += `<table style="width:100%; border-collapse: collapse; font-size:12px; margin-bottom:20px;">
+            html += `<h3 style="color:#241245; margin: 12px 0 6px 0; font-size: 13px;">📋 Resumo Diário</h3>`;
+            html += `<table style="width:100%; border-collapse: collapse; font-size:11px; margin-bottom:14px;">
                 <thead>
                     <tr style="background:#241245; color:#fff;">
-                        <th style="padding:6px; border:1px solid #ccc;">Data</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Máquinas</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Medições</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Média Geral</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Aprovadas</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Reprovadas</th>
-                        <th style="padding:6px; border:1px solid #ccc;">Produtos</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Data</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Máquinas</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Medições</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Média Geral</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Aprovadas</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Reprovadas</th>
+                        <th style="padding:5px; border:1px solid #ccc;">Produtos</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -3821,50 +3902,50 @@
                 const dayAvg = s.values.length > 0 ? s.values.reduce((a, b) => a + b, 0) / s.values.length : 0;
                 const productsStr = [...s.products].join(', ');
                 html += `<tr>
-                    <td style="padding:5px; border:1px solid #ccc;">${date.split('-').reverse().join('/')}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${s.machines}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${s.measurements}</td>
-                    <td style="padding:5px; border:1px solid #ccc;">${dayAvg ? dayAvg.toFixed(3).replace('.',',') : '—'}</td>
-                    <td style="padding:5px; border:1px solid #ccc; color:#155724;">${s.approved}</td>
-                    <td style="padding:5px; border:1px solid #ccc; color:#721c24;">${s.rejected}</td>
-                    <td style="padding:5px; border:1px solid #ccc; font-size:11px;">${escapeHtml(productsStr)}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${date.split('-').reverse().join('/')}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${s.machines}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${s.measurements}</td>
+                    <td style="padding:4px; border:1px solid #ccc;">${dayAvg ? dayAvg.toFixed(3).replace('.',',') : '—'}</td>
+                    <td style="padding:4px; border:1px solid #ccc; color:#155724;">${s.approved}</td>
+                    <td style="padding:4px; border:1px solid #ccc; color:#721c24;">${s.rejected}</td>
+                    <td style="padding:4px; border:1px solid #ccc; font-size:10px;">${escapeHtml(productsStr)}</td>
                 </tr>`;
             });
             html += `</tbody></table>`;
 
-            html += `<h3 style="color:#241245; margin-top:20px;">🔍 Detalhamento por Dia e Produto</h3>`;
+            html += `<h3 style="color:#241245; margin: 12px 0 6px 0; font-size: 13px;">🔍 Detalhamento por Dia e Produto</h3>`;
             sortedDates.forEach(date => {
                 const s = dailySummary[date];
                 html += `<div class="page-break"></div>`;
-                html += `<h4 style="color:#241245;">📅 ${date.split('-').reverse().join('/')}</h4>`;
-                html += `<div class="avoid-break"><table style="width:100%; border-collapse: collapse; font-size:11px; margin-bottom:15px;">
+                html += `<h4 style="color:#241245; font-size:12px; margin: 0 0 4px 0;">📅 ${date.split('-').reverse().join('/')}</h4>`;
+                html += `<div class="avoid-break"><table style="width:100%; border-collapse: collapse; font-size:10px; margin-bottom:12px;">
                     <thead>
                         <tr style="background:#241245; color:#fff;">
-                            <th style="padding:4px; border:1px solid #ccc;">Máquina</th>
-                            <th style="padding:4px; border:1px solid #ccc;">Produto</th>
-                            <th style="padding:4px; border:1px solid #ccc;">Inspetor</th>
-                            <th style="padding:4px; border:1px solid #ccc;">Status</th>
-                            <th style="padding:4px; border:1px solid #ccc;">Média Geral</th>
+                            <th style="padding:3px; border:1px solid #ccc;">Máquina</th>
+                            <th style="padding:3px; border:1px solid #ccc;">Produto</th>
+                            <th style="padding:3px; border:1px solid #ccc;">Inspetor</th>
+                            <th style="padding:3px; border:1px solid #ccc;">Status</th>
+                            <th style="padding:3px; border:1px solid #ccc;">Média Geral</th>
                         </tr>
                     </thead>
                     <tbody>`;
                 s.details.forEach(d => {
                     html += `<tr>
-                        <td style="padding:4px; border:1px solid #ccc;">${escapeHtml(d.machine)}</td>
-                        <td style="padding:4px; border:1px solid #ccc;">${escapeHtml(d.product)}</td>
-                        <td style="padding:4px; border:1px solid #ccc;">${escapeHtml(d.inspector)}</td>
-                        <td style="padding:4px; border:1px solid #ccc; color:${d.status==='APROVADO'?'#155724':'#721c24'};">${escapeHtml(d.status)}</td>
-                        <td style="padding:4px; border:1px solid #ccc;">${d.totalAvg ? d.totalAvg.toFixed(3).replace('.',',') : '—'}</td>
+                        <td style="padding:3px; border:1px solid #ccc;">${escapeHtml(d.machine)}</td>
+                        <td style="padding:3px; border:1px solid #ccc;">${escapeHtml(d.product)}</td>
+                        <td style="padding:3px; border:1px solid #ccc;">${escapeHtml(d.inspector)}</td>
+                        <td style="padding:3px; border:1px solid #ccc; color:${d.status==='APROVADO'?'#155724':'#721c24'};">${escapeHtml(d.status)}</td>
+                        <td style="padding:3px; border:1px solid #ccc;">${d.totalAvg ? d.totalAvg.toFixed(3).replace('.',',') : '—'}</td>
                     </tr>`;
                 });
                 html += `</tbody></table></div>`;
             });
 
             if (allProblems.length > 0) {
-                html += `<h3 style="color:#dc3545; margin-top:20px;">⚠️ Problemas Registrados no Mês</h3>`;
-                html += `<ul style="list-style:none; padding:0;">`;
+                html += `<h3 style="color:#dc3545; margin: 12px 0 6px 0; font-size: 13px;">⚠️ Problemas Registrados no Mês</h3>`;
+                html += `<ul style="list-style:none; padding:0; margin: 0; font-size: 11px;">`;
                 allProblems.forEach(p => {
-                    html += `<li style="margin-bottom:5px;"><strong>${p.date.split('-').reverse().join('/')} - ${escapeHtml(p.machine)} (${escapeHtml(p.product)}):</strong> ${escapeHtml(p.problema)}</li>`;
+                    html += `<li style="margin-bottom:4px;"><strong>${p.date.split('-').reverse().join('/')} - ${escapeHtml(p.machine)} (${escapeHtml(p.product)}):</strong> ${escapeHtml(p.problema)}</li>`;
                 });
                 html += `</ul>`;
             }
