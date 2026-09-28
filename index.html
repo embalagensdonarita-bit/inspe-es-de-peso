@@ -1606,6 +1606,7 @@
                 <button type="button" class="btn btn-outline" onclick="resetForm()">🆕 Nova Inspeção</button>
                 <button type="button" class="btn btn-accent" onclick="openCurrentDataReport()">📊 RELATORIO</button>
                 <button type="button" class="btn btn-warning" onclick="openPdfReportModal()">📅 PDF MENSAL</button>
+                <button type="button" class="btn btn-pdf" onclick="openProductPdfModal()">📦 PDF POR PEÇA</button>
                 <button type="button" class="btn btn-success" onclick="addMachineCard()">➕ Adicionar Máquina</button>
                 <button type="button" id="btn-save-daily" class="btn btn-primary" onclick="saveDailyData()">💾 Salvar Histórico do Dia</button>
                 <button type="button" id="btn-save-edits" class="btn btn-warning" onclick="saveEdits()" style="display:none;">💾 Salvar Alterações</button>
@@ -1973,6 +1974,41 @@
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
                 <button type="button" class="btn btn-outline" onclick="closePdfReportModal()">Cancelar</button>
                 <button type="button" class="btn btn-success" id="btn-generate-pdf" onclick="generateReportPDF()">📥 Gerar PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         NOVO MODAL: PDF POR PEÇA (produto específico)
+         ============================================================ -->
+    <div id="product-pdf-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:30px; border-radius:12px; width:480px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <h3 style="color:#241245; margin-bottom:20px; text-align:center;">📦 Gerar PDF por Peça</h3>
+            <p style="color:#555; margin-bottom:15px;">Escolha o produto (peça) e o tipo de relatório:</p>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📦 Produto / Peça:</label>
+                <input type="text" id="product-filter-input" list="product-list" placeholder="Ex: D50 R PR" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px; font-weight:600;" autocomplete="off">
+                <small style="display:block; color:#888; font-size:11px; margin-top:4px;">Digite ou selecione o código do produto na lista.</small>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; margin-bottom:8px;">
+                    <input type="radio" name="product-report-type" value="daily" checked onchange="toggleProductReportType()"> Diário (um dia específico)
+                </label>
+                <label style="display:block;">
+                    <input type="radio" name="product-report-type" value="monthly" onchange="toggleProductReportType()"> Mensal (um mês inteiro)
+                </label>
+            </div>
+            <div id="product-daily-field" style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📅 Selecione o dia:</label>
+                <input type="date" id="product-daily-date" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div id="product-monthly-field" style="display:none; margin-bottom:20px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📅 Selecione o mês:</label>
+                <input type="month" id="product-monthly-month" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="closeProductPdfModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btn-generate-product-pdf" onclick="generateProductReportPDF()">📥 Gerar PDF</button>
             </div>
         </div>
     </div>
@@ -3436,6 +3472,148 @@
             }
         }
 
+        /* ============================================================
+           PDF POR PEÇA (produto específico)
+           ============================================================ */
+        function openProductPdfModal() {
+            const modal = document.getElementById('product-pdf-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dailyEl = document.getElementById('product-daily-date');
+            const monthlyEl = document.getElementById('product-monthly-month');
+            if (dailyEl) dailyEl.value = todayStr;
+            if (monthlyEl) monthlyEl.value = todayStr.slice(0, 7);
+            const radio = document.querySelector('input[name="product-report-type"][value="daily"]');
+            if (radio) radio.checked = true;
+            toggleProductReportType();
+        }
+
+        function closeProductPdfModal() {
+            const modal = document.getElementById('product-pdf-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function toggleProductReportType() {
+            const checked = document.querySelector('input[name="product-report-type"]:checked');
+            if (!checked) return;
+            const type = checked.value;
+            const dailyField = document.getElementById('product-daily-field');
+            const monthlyField = document.getElementById('product-monthly-field');
+            if (dailyField) dailyField.style.display = (type === 'daily') ? 'block' : 'none';
+            if (monthlyField) monthlyField.style.display = (type === 'monthly') ? 'block' : 'none';
+        }
+
+        async function generateProductReportPDF() {
+            const btn = document.getElementById('btn-generate-product-pdf');
+            const original = btn ? btn.textContent : '';
+
+            const productInput = document.getElementById('product-filter-input');
+            const productFilterRaw = productInput ? productInput.value.trim() : '';
+            if (!productFilterRaw) {
+                alert('⚠️ Selecione ou digite o produto (peça) que deseja filtrar.');
+                return;
+            }
+            const productFilter = productFilterRaw.toUpperCase();
+
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando...'; }
+            showLoading('Gerando PDF...');
+            try {
+                const type = document.querySelector('input[name="product-report-type"]:checked').value;
+                let startDate, endDate, label;
+
+                if (type === 'daily') {
+                    const date = document.getElementById('product-daily-date').value;
+                    if (!date) { alert('Selecione uma data.'); return; }
+                    startDate = date;
+                    endDate = date;
+                    label = `Peça ${productFilterRaw} - Diário - ${date.split('-').reverse().join('/')}`;
+                } else {
+                    const monthValue = document.getElementById('product-monthly-month').value;
+                    if (!monthValue) { alert('Selecione um mês.'); return; }
+                    const [year, month] = monthValue.split('-');
+                    startDate = `${monthValue}-01`;
+                    const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+                    endDate = `${monthValue}-${String(lastDay).padStart(2, '0')}`;
+                    label = `Peça ${productFilterRaw} - Mensal - ${monthValue.replace('-', '/')}`;
+                }
+
+                const snapshot = await db.collection(COLLECTION_NAME)
+                    .where(firebase.firestore.FieldPath.documentId(), '>=', startDate)
+                    .where(firebase.firestore.FieldPath.documentId(), '<=', endDate)
+                    .get();
+
+                if (snapshot.empty) {
+                    alert('Nenhum dado encontrado para o período selecionado.');
+                    return;
+                }
+
+                // Filtra apenas as máquinas do produto selecionado
+                const reportData = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!data || !data.inspectors) return;
+                    const filteredInspectors = {};
+                    Object.keys(data.inspectors).forEach(inspName => {
+                        const inspObj = data.inspectors[inspName];
+                        if (!inspObj || !inspObj.products) return;
+                        const filteredProducts = {};
+                        Object.keys(inspObj.products).forEach(prodKey => {
+                            if (prodKey.trim().toUpperCase() === productFilter) {
+                                filteredProducts[prodKey] = inspObj.products[prodKey];
+                            }
+                        });
+                        if (Object.keys(filteredProducts).length > 0) {
+                            filteredInspectors[inspName] = { products: filteredProducts };
+                        }
+                    });
+                    if (Object.keys(filteredInspectors).length > 0) {
+                        reportData.push({ date: doc.id, data: { inspectors: filteredInspectors } });
+                    }
+                });
+
+                if (reportData.length === 0) {
+                    alert(`Nenhum dado encontrado para o produto "${productFilterRaw}" no período selecionado.`);
+                    return;
+                }
+
+                reportData.sort((a, b) => a.date.localeCompare(b.date));
+
+                const isMonthly = (type === 'monthly');
+                const reportHTML = buildReportHTML(reportData, label, isMonthly);
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = reportHTML;
+                tempDiv.style.padding = '20px';
+                tempDiv.style.backgroundColor = '#fff';
+                tempDiv.style.width = '900px';
+                tempDiv.style.margin = '0 auto';
+                document.getElementById('pdf-generation-container').appendChild(tempDiv);
+
+                const safeProduct = productFilterRaw.replace(/[^a-zA-Z0-9]/g, '_');
+                const safeLabel = label.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '_');
+
+                const opt = {
+                    margin: 10,
+                    filename: `Relatorio_Peca_${safeProduct}_${safeLabel}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+
+                await html2pdf().from(tempDiv).set(opt).save();
+                tempDiv.remove();
+                closeProductPdfModal();
+            } catch (error) {
+                console.error('Erro ao gerar PDF por peça:', error);
+                alert('❌ Erro ao gerar PDF.\n' + (error && error.message ? error.message : ''));
+            } finally {
+                hideLoading();
+                if (btn) { btn.disabled = false; btn.textContent = original; }
+            }
+        }
+
         function buildReportHTML(reportData, label, isMonthly = false) {
             return isMonthly ? buildMonthlyReportHTML(reportData, label) : buildDailyReportHTML(reportData, label);
         }
@@ -4482,6 +4660,11 @@
                 const pdfModal = document.getElementById('pdf-report-modal');
                 if (pdfModal && pdfModal.style.display === 'flex') {
                     closePdfReportModal();
+                    return;
+                }
+                const productPdfModal = document.getElementById('product-pdf-modal');
+                if (productPdfModal && productPdfModal.style.display === 'flex') {
+                    closeProductPdfModal();
                 }
             }
             if (e.key === 'Enter') {
