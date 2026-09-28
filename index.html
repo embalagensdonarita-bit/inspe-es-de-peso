@@ -3504,6 +3504,14 @@
             if (monthlyField) monthlyField.style.display = (type === 'monthly') ? 'block' : 'none';
         }
 
+        // Normaliza strings de produto: colapsa espaços múltiplos, remove bordas, uppercase
+        function normalizeProductKey(s) {
+            return String(s === null || s === undefined ? '' : s)
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toUpperCase();
+        }
+
         async function generateProductReportPDF() {
             const btn = document.getElementById('btn-generate-product-pdf');
             const original = btn ? btn.textContent : '';
@@ -3514,7 +3522,7 @@
                 alert('⚠️ Selecione ou digite o produto (peça) que deseja filtrar.');
                 return;
             }
-            const productFilter = productFilterRaw.toUpperCase();
+            const productFilter = normalizeProductKey(productFilterRaw);
 
             if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando...'; }
             showLoading('Gerando PDF...');
@@ -3548,32 +3556,47 @@
                     return;
                 }
 
-                // Filtra apenas as máquinas do produto selecionado
+                // ============================================================
+                // FILTRO POR PRODUTO — mantém SOMENTE os produtos que casam
+                // com o filtro (normalizado). Todo o resto é descartado.
+                // ============================================================
                 const reportData = [];
+                let totalMachinesMatched = 0;
+                let productsMatchedSet = new Set();
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (!data || !data.inspectors) return;
+
                     const filteredInspectors = {};
                     Object.keys(data.inspectors).forEach(inspName => {
                         const inspObj = data.inspectors[inspName];
                         if (!inspObj || !inspObj.products) return;
+
                         const filteredProducts = {};
                         Object.keys(inspObj.products).forEach(prodKey => {
-                            if (prodKey.trim().toUpperCase() === productFilter) {
+                            if (normalizeProductKey(prodKey) === productFilter) {
                                 filteredProducts[prodKey] = inspObj.products[prodKey];
+                                productsMatchedSet.add(prodKey);
+                                const arr = inspObj.products[prodKey];
+                                if (Array.isArray(arr)) totalMachinesMatched += arr.length;
                             }
                         });
+
                         if (Object.keys(filteredProducts).length > 0) {
                             filteredInspectors[inspName] = { products: filteredProducts };
                         }
                     });
+
                     if (Object.keys(filteredInspectors).length > 0) {
                         reportData.push({ date: doc.id, data: { inspectors: filteredInspectors } });
                     }
                 });
 
+                console.log(`[PDF POR PEÇA] Filtro aplicado: "${productFilter}" | Docs com match: ${reportData.length} | Máquinas filtradas: ${totalMachinesMatched} | Produtos exatos encontrados: ${[...productsMatchedSet].join(', ')}`);
+
                 if (reportData.length === 0) {
-                    alert(`Nenhum dado encontrado para o produto "${productFilterRaw}" no período selecionado.`);
+                    alert(`⚠️ Nenhum dado encontrado para o produto "${productFilterRaw}" no período selecionado.\n\nVerifique se o código do produto está correto (ex: "D50 R PR").`);
                     return;
                 }
 
