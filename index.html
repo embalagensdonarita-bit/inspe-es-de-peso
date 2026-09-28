@@ -3603,7 +3603,8 @@
                 reportData.sort((a, b) => a.date.localeCompare(b.date));
 
                 const isMonthly = (type === 'monthly');
-                const reportHTML = buildReportHTML(reportData, label, isMonthly);
+                // PDF POR PEÇA: sempre inclui detalhamento por cavidade
+                const reportHTML = buildReportHTML(reportData, label, isMonthly, true);
 
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = reportHTML;
@@ -3637,8 +3638,12 @@
             }
         }
 
-        function buildReportHTML(reportData, label, isMonthly = false) {
-            return isMonthly ? buildMonthlyReportHTML(reportData, label) : buildDailyReportHTML(reportData, label);
+        // includeCavityDetails: se true, o modo MENSAL também mostra o detalhamento
+        // de cada cavidade (M1/M3/M4) de cada máquina. Padrão: false (comportamento original).
+        function buildReportHTML(reportData, label, isMonthly = false, includeCavityDetails = false) {
+            return isMonthly
+                ? buildMonthlyReportHTML(reportData, label, includeCavityDetails)
+                : buildDailyReportHTML(reportData, label);
         }
 
         function buildDailyReportHTML(reportData, label) {
@@ -3890,7 +3895,7 @@
             return html;
         }
 
-        function buildMonthlyReportHTML(reportData, label) {
+        function buildMonthlyReportHTML(reportData, label, includeCavityDetails = false) {
             const dailySummary = {};
             const allProblems = [];
             const allProductsSet = new Set();
@@ -3960,12 +3965,20 @@
                                     }
                                 });
                             });
+                            // Guarda todos os dados necessários para o detalhamento por cavidade
                             summary.details.push({
                                 machine: m.machine,
                                 product: prodKey,
                                 inspector: inspName,
                                 status: m.status,
-                                totalAvg: m.totalAverage || 0
+                                totalAvg: m.totalAverage || 0,
+                                rows: rows,
+                                cavity: m.cavity || 10,
+                                tolMin: m.tolMin || '23,51',
+                                tolMax: m.tolMax || '25,11',
+                                cycle: m.cycle || '',
+                                turn: m.turn || '',
+                                collaborator: m.collaborator || ''
                             });
                         });
                     });
@@ -4138,6 +4151,65 @@
                     </tr>`;
                 });
                 html += `</tbody></table></div>`;
+
+                // ============================================================
+                // DETALHAMENTO POR CAVIDADE (apenas quando solicitado — PDF POR PEÇA)
+                // ============================================================
+                if (includeCavityDetails) {
+                    s.details.forEach(d => {
+                        const minTol = parseFloat(String(d.tolMin).replace(',', '.'));
+                        const maxTol = parseFloat(String(d.tolMax).replace(',', '.'));
+                        const cavityCount = Math.min(d.cavity || 10, 10);
+                        const dt = d.rows || [];
+
+                        // Conta medições para saber se vale a pena mostrar
+                        let hasAnyValue = false;
+                        for (let i = 0; i < cavityCount; i++) {
+                            const r = dt[i] || {};
+                            [r.m1, r.m3, r.m4].forEach(v => {
+                                if (v !== '' && v !== null && v !== undefined && !isNaN(parseFloat(v))) hasAnyValue = true;
+                            });
+                        }
+                        if (!hasAnyValue) return;
+
+                        html += `<div class="avoid-break" style="margin-bottom:12px;">
+                            <h5 style="color:#3e2970; font-size:11px; margin: 6px 0 4px 0;">
+                                🔬 Máquina: <strong>${escapeHtml(d.machine)}</strong> — Produto: <strong>${escapeHtml(d.product)}</strong> — Inspetor: ${escapeHtml(d.inspector)}
+                                ${d.turn ? ` — Turno: ${escapeHtml(d.turn)}` : ''}
+                                ${d.cycle ? ` — Ciclo: ${escapeHtml(d.cycle)}` : ''}
+                            </h5>
+                            <table style="width:100%; border-collapse:collapse; font-size:10px;">
+                                <thead><tr style="background:#3e2970; color:#fff;">
+                                    <th style="padding:3px; border:1px solid #ccc;">Cavidade</th>
+                                    <th style="padding:3px; border:1px solid #ccc;">M1</th>
+                                    <th style="padding:3px; border:1px solid #ccc;">M3</th>
+                                    <th style="padding:3px; border:1px solid #ccc;">M4</th>
+                                </tr></thead>
+                                <tbody>`;
+                        for (let i = 0; i < cavityCount; i++) {
+                            const r = dt[i] || {};
+                            const valM1 = r.m1 !== '' && r.m1 !== undefined ? parseFloat(r.m1) : '';
+                            const valM3 = r.m3 !== '' && r.m3 !== undefined ? parseFloat(r.m3) : '';
+                            const valM4 = r.m4 !== '' && r.m4 !== undefined ? parseFloat(r.m4) : '';
+                            const clsM1 = getWeightColorClass(valM1, minTol, maxTol);
+                            const clsM3 = getWeightColorClass(valM3, minTol, maxTol);
+                            const clsM4 = getWeightColorClass(valM4, minTol, maxTol);
+                            const bgM1 = clsM1 === 'weight-ok' ? '#d4edda' : clsM1 === 'weight-min' ? '#fff3cd' : (clsM1 === 'weight-low' || clsM1 === 'weight-high') ? '#f8d7da' : 'transparent';
+                            const bgM3 = clsM3 === 'weight-ok' ? '#d4edda' : clsM3 === 'weight-min' ? '#fff3cd' : (clsM3 === 'weight-low' || clsM3 === 'weight-high') ? '#f8d7da' : 'transparent';
+                            const bgM4 = clsM4 === 'weight-ok' ? '#d4edda' : clsM4 === 'weight-min' ? '#fff3cd' : (clsM4 === 'weight-low' || clsM4 === 'weight-high') ? '#f8d7da' : 'transparent';
+                            const colM1 = clsM1 === 'weight-ok' ? '#155724' : clsM1 === 'weight-min' ? '#856404' : (clsM1 === 'weight-low' || clsM1 === 'weight-high') ? '#721c24' : '#333';
+                            const colM3 = clsM3 === 'weight-ok' ? '#155724' : clsM3 === 'weight-min' ? '#856404' : (clsM3 === 'weight-low' || clsM3 === 'weight-high') ? '#721c24' : '#333';
+                            const colM4 = clsM4 === 'weight-ok' ? '#155724' : clsM4 === 'weight-min' ? '#856404' : (clsM4 === 'weight-low' || clsM4 === 'weight-high') ? '#721c24' : '#333';
+                            html += `<tr>
+                                <td style="padding:3px; border:1px solid #ccc;">${i + 1}</td>
+                                <td style="padding:3px; border:1px solid #ccc; background:${bgM1}; color:${colM1};">${valM1 !== '' && !isNaN(valM1) ? valM1.toFixed(3).replace('.',',') : '—'}</td>
+                                <td style="padding:3px; border:1px solid #ccc; background:${bgM3}; color:${colM3};">${valM3 !== '' && !isNaN(valM3) ? valM3.toFixed(3).replace('.',',') : '—'}</td>
+                                <td style="padding:3px; border:1px solid #ccc; background:${bgM4}; color:${colM4};">${valM4 !== '' && !isNaN(valM4) ? valM4.toFixed(3).replace('.',',') : '—'}</td>
+                            </tr>`;
+                        }
+                        html += `</tbody></table></div>`;
+                    });
+                }
             });
 
             if (allProblems.length > 0) {
