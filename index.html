@@ -875,7 +875,7 @@
         }
 
         /* ============================================================
-           GRÁFICO DE RANGE (MÍN / MÉDIA / MÁX)
+           GRÁFICO DE RANGE (MÍN / MÉDIA / MÁX) — CORES ROXAS
            ============================================================ */
         .range-chart-legend {
             display: flex;
@@ -941,9 +941,9 @@
             position: absolute;
             top: 0;
             height: 100%;
-            background: linear-gradient(90deg, #f47b20 0%, #f59e4b 50%, #28a745 100%);
+            background: linear-gradient(90deg, #e9d5ff 0%, #6b21a8 50%, #3b0764 100%);
             border-radius: 5px;
-            opacity: 0.8;
+            opacity: 0.9;
         }
         .range-chart-marker {
             position: absolute;
@@ -996,12 +996,14 @@
             font-weight: 600;
             color: #241245;
         }
-        .range-chart-values .rv-min { background: #fff3cd; color: #856404; }
-        .range-chart-values .rv-avg { background: #e2e3ff; color: #241245; }
-        .range-chart-values .rv-max { background: #f8d7da; color: #721c24; }
-        .range-chart-values .rv-ref-min { background: #fce4d6; color: #d35400; border: 1px dashed #f4b084; }
-        .range-chart-values .rv-ref-mid { background: #d9ead3; color: #1e7e34; border: 1px dashed #a9d18e; }
-        .range-chart-values .rv-ref-max { background: #f4cccc; color: #a61e1e; border: 1px dashed #ea9999; }
+        /* MEDIDOS: min roxo fraquinho | méd roxo quase escuro | máx roxo muito escuro */
+        .range-chart-values .rv-min { background: #f3e8ff; color: #6b21a8; }
+        .range-chart-values .rv-avg { background: #6b21a8; color: #ffffff; }
+        .range-chart-values .rv-max { background: #3b0764; color: #ffffff; }
+        /* REFERÊNCIA (produto) */
+        .range-chart-values .rv-ref-min { background: #f3e8ff; color: #6b21a8; border: 1px dashed #a855f7; }
+        .range-chart-values .rv-ref-mid { background: #6b21a8; color: #ffffff; border: 1px dashed #a855f7; }
+        .range-chart-values .rv-ref-max { background: #3b0764; color: #ffffff; border: 1px dashed #a855f7; }
 
         .dash-table-wrapper {
             overflow-x: auto;
@@ -3131,11 +3133,12 @@
                GRÁFICO: MÉDIA GERAL POR MÁQUINA
                Linha 1 = REFERÊNCIA (Mín/Ideal/Máx)
                Linha 2 = MEDIDOS (Mín/Média/Máx)
+               CORES: SOMENTE ROXO
                ============================================================ */
             html += `<div class="dash-section-title">📊 Média Geral por Máquina — Referência (linha 1) e Medidos (linha 2)</div>`;
             html += `<div class="range-chart-legend">
-                <span><span class="dot" style="background:#f47b20;"></span> Faixa mín–máx (medidos)</span>
-                <span><span class="dot" style="background:#3e2970;"></span> Média (medidos)</span>
+                <span><span class="dot" style="background:linear-gradient(135deg,#e9d5ff,#3b0764);"></span> Faixa mín–máx (medidos)</span>
+                <span><span class="dot" style="background:#6b21a8;"></span> Média (medidos)</span>
                 <span><span style="display:inline-block; width:2px; height:16px; background:#241245; opacity:0.35;"></span> Limite de tolerância</span>
                 <span>📌 Ref. (produto) &nbsp;|&nbsp; 🔻 🎯 🔺 Medidos</span>
             </div>`;
@@ -3192,10 +3195,8 @@
                 const tolMaxPct = !isNaN(tolMax) ? pct(tolMax) : null;
                 const tolMidPct = !isNaN(tolMid) ? pct(tolMid) : null;
 
-                let markerColor = '#3e2970';
-                if (!isNaN(tolMin) && avg < tolMin) markerColor = '#dc3545';
-                else if (!isNaN(tolMax) && avg > tolMax) markerColor = '#dc3545';
-                else if (!isNaN(tolMin) && Math.abs(avg - tolMin) < 0.0001) markerColor = '#f0ad4e';
+                // COR ROXA única para o marcador (média = roxo quase escuro)
+                const markerColor = '#6b21a8';
 
                 // Chips de REFERÊNCIA (do produto: mín / ideal / máx)
                 const refMinHTML = !isNaN(tolMin)
@@ -3213,7 +3214,7 @@
                     <div class="range-chart-track-wrapper">
                         <div class="range-chart-track">
                             ${tolMinPct !== null ? `<div class="range-chart-tol" style="left:${tolMinPct}%;" title="Mín tolerância: ${m.tolMin}"></div>` : ''}
-                            ${tolMidPct !== null ? `<div class="range-chart-tol" style="left:${tolMidPct}%; background:#1e7e34; opacity:0.55;" title="Ideal: ${m.tolMid}"></div>` : ''}
+                            ${tolMidPct !== null ? `<div class="range-chart-tol" style="left:${tolMidPct}%; background:#6b21a8; opacity:0.55;" title="Ideal: ${m.tolMid}"></div>` : ''}
                             ${tolMaxPct !== null ? `<div class="range-chart-tol" style="left:${tolMaxPct}%;" title="Máx tolerância: ${m.tolMax}"></div>` : ''}
                             <div class="range-chart-range" style="left:${minPct}%; width:${Math.max(maxPct - minPct, 1.5)}%;"></div>
                             <div class="range-chart-marker" style="left:${avgPct}%; background:${markerColor};" title="Média medida: ${avg.toFixed(3).replace('.',',')}"></div>
@@ -3227,7 +3228,7 @@
                         </div>
                         <div class="row-values">
                             <span class="rv rv-min" title="Mínimo medido">🔻 ${dataMin.toFixed(2).replace('.',',')}</span>
-                            <span class="rv rv-avg" style="color:${markerColor};" title="Média medida">🎯 ${avg.toFixed(3).replace('.',',')}</span>
+                            <span class="rv rv-avg" title="Média medida">🎯 ${avg.toFixed(3).replace('.',',')}</span>
                             <span class="rv rv-max" title="Máximo medido">🔺 ${dataMax.toFixed(2).replace('.',',')}</span>
                         </div>
                     </div>
@@ -3559,6 +3560,7 @@
 
             /* ============================================================
                GRÁFICO: MÉDIA POR MÁQUINA — REFERÊNCIA + MEDIDOS
+               CORES: SOMENTE ROXO
                ============================================================ */
             html += `<div class="avoid-break" style="margin-bottom:14px;">`;
             html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Máquina — Referência (linha 1) e Medidos (linha 2)</h3>`;
@@ -3586,21 +3588,18 @@
                 const dataMax = allVals.length > 0 ? Math.max(...allVals) : 0;
                 const dataAvg = m.totalAvg || 0;
 
-                let markerColor = '#3e2970';
-                if (!isNaN(tolMinNum) && dataAvg < tolMinNum) markerColor = '#dc3545';
-                else if (!isNaN(tolMaxNum) && dataAvg > tolMaxNum) markerColor = '#dc3545';
-                else if (!isNaN(tolMinNum) && Math.abs(dataAvg - tolMinNum) < 0.0001) markerColor = '#f0ad4e';
+                const markerColor = '#6b21a8';
 
                 const fmt2 = (n) => isNaN(n) ? '—' : n.toFixed(2).replace('.', ',');
                 const fmt3 = (n) => isNaN(n) ? '—' : n.toFixed(3).replace('.', ',');
 
-                const refMinChip = !isNaN(tolMinNum) ? `<span class="pdf-chip" style="background:#fce4d6; color:#d35400; border:1px dashed #f4b084;">📌 Ref 🔻 ${fmt2(tolMinNum)}</span>` : '';
-                const refMidChip = !isNaN(tolMidNum) ? `<span class="pdf-chip" style="background:#d9ead3; color:#1e7e34; border:1px dashed #a9d18e;">📌 Ref 🎯 ${fmt2(tolMidNum)}</span>` : '';
-                const refMaxChip = !isNaN(tolMaxNum) ? `<span class="pdf-chip" style="background:#f4cccc; color:#a61e1e; border:1px dashed #ea9999;">📌 Ref 🔺 ${fmt2(tolMaxNum)}</span>` : '';
+                const refMinChip = !isNaN(tolMinNum) ? `<span class="pdf-chip" style="background:#f3e8ff; color:#6b21a8; border:1px dashed #a855f7;">📌 Ref 🔻 ${fmt2(tolMinNum)}</span>` : '';
+                const refMidChip = !isNaN(tolMidNum) ? `<span class="pdf-chip" style="background:#6b21a8; color:#ffffff; border:1px dashed #a855f7;">📌 Ref 🎯 ${fmt2(tolMidNum)}</span>` : '';
+                const refMaxChip = !isNaN(tolMaxNum) ? `<span class="pdf-chip" style="background:#3b0764; color:#ffffff; border:1px dashed #a855f7;">📌 Ref 🔺 ${fmt2(tolMaxNum)}</span>` : '';
 
-                const medMinChip = `<span class="pdf-chip" style="background:#fff3cd; color:#856404;">🔻 ${fmt2(dataMin)}</span>`;
-                const medAvgChip = `<span class="pdf-chip" style="background:#e2e3ff; color:${markerColor};">🎯 ${fmt3(dataAvg)}</span>`;
-                const medMaxChip = `<span class="pdf-chip" style="background:#f8d7da; color:#721c24;">🔺 ${fmt2(dataMax)}</span>`;
+                const medMinChip = `<span class="pdf-chip" style="background:#f3e8ff; color:#6b21a8;">🔻 ${fmt2(dataMin)}</span>`;
+                const medAvgChip = `<span class="pdf-chip" style="background:#6b21a8; color:#ffffff;">🎯 ${fmt3(dataAvg)}</span>`;
+                const medMaxChip = `<span class="pdf-chip" style="background:#3b0764; color:#ffffff;">🔺 ${fmt2(dataMax)}</span>`;
 
                 html += `<div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #eee; flex-wrap:wrap;">
                     <div style="min-width:70px; font-weight:bold; font-size:11px; color:#241245; text-align:right;">${escapeHtml(m.machine)}</div>
@@ -3838,6 +3837,7 @@
 
             /* ============================================================
                GRÁFICO PDF MENSAL: POR PRODUTO — REFERÊNCIA + MEDIDOS
+               CORES: SOMENTE ROXO
                ============================================================ */
             html += `<div class="avoid-break" style="margin-bottom:14px;">`;
             html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Produto — Referência (linha 1) e Medidos (linha 2)</h3>`;
@@ -3856,20 +3856,18 @@
                 const tolMidNum = s.tolMid;
                 const tolMaxNum = s.tolMax;
 
-                let markerColor = '#3e2970';
-                if (tolMinNum !== null && prodAvg < tolMinNum) markerColor = '#dc3545';
-                else if (tolMaxNum !== null && prodAvg > tolMaxNum) markerColor = '#dc3545';
+                const markerColor = '#6b21a8';
 
                 const fmt2 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(2).replace('.', ',');
                 const fmt3 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(3).replace('.', ',');
 
-                const refMinChip = tolMinNum !== null ? `<span class="pdf-chip" style="background:#fce4d6; color:#d35400; border:1px dashed #f4b084;">📌 Ref 🔻 ${fmt2(tolMinNum)}</span>` : '';
-                const refMidChip = tolMidNum !== null ? `<span class="pdf-chip" style="background:#d9ead3; color:#1e7e34; border:1px dashed #a9d18e;">📌 Ref 🎯 ${fmt2(tolMidNum)}</span>` : '';
-                const refMaxChip = tolMaxNum !== null ? `<span class="pdf-chip" style="background:#f4cccc; color:#a61e1e; border:1px dashed #ea9999;">📌 Ref 🔺 ${fmt2(tolMaxNum)}</span>` : '';
+                const refMinChip = tolMinNum !== null ? `<span class="pdf-chip" style="background:#f3e8ff; color:#6b21a8; border:1px dashed #a855f7;">📌 Ref 🔻 ${fmt2(tolMinNum)}</span>` : '';
+                const refMidChip = tolMidNum !== null ? `<span class="pdf-chip" style="background:#6b21a8; color:#ffffff; border:1px dashed #a855f7;">📌 Ref 🎯 ${fmt2(tolMidNum)}</span>` : '';
+                const refMaxChip = tolMaxNum !== null ? `<span class="pdf-chip" style="background:#3b0764; color:#ffffff; border:1px dashed #a855f7;">📌 Ref 🔺 ${fmt2(tolMaxNum)}</span>` : '';
 
-                const medMinChip = `<span class="pdf-chip" style="background:#fff3cd; color:#856404;">🔻 ${fmt2(prodMin)}</span>`;
-                const medAvgChip = `<span class="pdf-chip" style="background:#e2e3ff; color:${markerColor};">🎯 ${fmt3(prodAvg)}</span>`;
-                const medMaxChip = `<span class="pdf-chip" style="background:#f8d7da; color:#721c24;">🔺 ${fmt2(prodMax)}</span>`;
+                const medMinChip = `<span class="pdf-chip" style="background:#f3e8ff; color:#6b21a8;">🔻 ${fmt2(prodMin)}</span>`;
+                const medAvgChip = `<span class="pdf-chip" style="background:#6b21a8; color:#ffffff;">🎯 ${fmt3(prodAvg)}</span>`;
+                const medMaxChip = `<span class="pdf-chip" style="background:#3b0764; color:#ffffff;">🔺 ${fmt2(prodMax)}</span>`;
 
                 html += `<div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #eee; flex-wrap:wrap;">
                     <div style="min-width:70px; font-weight:bold; font-size:11px; color:#241245; text-align:right;">${escapeHtml(prodKey)}</div>
