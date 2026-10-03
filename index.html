@@ -1550,6 +1550,29 @@
             box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12) !important;
             transition: all 0.4s ease;
         }
+        
+        /* NOVO ESTILO PARA A LISTA DE SELEÇÃO DE PEÇAS */
+        .product-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #241245;
+            transition: background 0.15s;
+        }
+        .product-checkbox-label:hover {
+            background: #f0edf7;
+        }
+        .product-checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #3e2970;
+        }
     </style>
 </head>
 <body>
@@ -1944,15 +1967,25 @@
         </div>
     </div>
 
+    <!-- MODAL PDF POR PEÇA MODIFICADO -->
     <div id="product-pdf-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
-        <div style="background:#fff; padding:30px; border-radius:12px; width:480px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+        <div style="background:#fff; padding:30px; border-radius:12px; width:520px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <h3 style="color:#241245; margin-bottom:20px; text-align:center;">📦 Gerar PDF por Peça</h3>
-            <p style="color:#555; margin-bottom:15px;">Escolha o produto (peça) e o tipo de relatório:</p>
+            <p style="color:#555; margin-bottom:15px;">Escolha as peças e o tipo de relatório:</p>
+            
             <div style="margin-bottom:15px;">
-                <label style="display:block; font-weight:600; margin-bottom:5px;">📦 Produto / Peça:</label>
-                <input type="text" id="product-filter-input" list="product-list" placeholder="Ex: D50 R PR" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px; font-weight:600;" autocomplete="off">
-                <small style="display:block; color:#888; font-size:11px; margin-top:4px;">Digite ou selecione o código do produto na lista.</small>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📦 Produtos / Peças:</label>
+                <input type="text" id="product-search-input" placeholder="🔍 Digite para buscar uma peça..." oninput="filterProductCheckboxes()" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:14px; margin-bottom:8px;" autocomplete="off">
+                <div style="display:flex; gap:10px; margin-bottom:8px;">
+                    <button type="button" class="btn btn-outline" style="padding:6px 10px; font-size:11px; flex:1;" onclick="toggleAllProducts(true)">Marcar Visíveis</button>
+                    <button type="button" class="btn btn-outline" style="padding:6px 10px; font-size:11px; flex:1;" onclick="toggleAllProducts(false)">Desmarcar Todos</button>
+                </div>
+                <div id="product-checkboxes-container" style="height: 200px; overflow-y: auto; border: 1.5px solid #ccc; border-radius: 6px; padding: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 2px;">
+                    <!-- Checkboxes serão gerados dinamicamente aqui -->
+                </div>
+                <small style="display:block; color:#888; font-size:11px; margin-top:4px;">Selecione uma ou mais peças na lista acima.</small>
             </div>
+            
             <div style="margin-bottom:20px;">
                 <label style="display:block; margin-bottom:8px;">
                     <input type="radio" name="product-report-type" value="daily" checked onchange="toggleProductReportType()"> Diário (um dia específico)
@@ -3409,6 +3442,61 @@
             }
         }
 
+        // ==============================================================
+        // NOVAS FUNÇÕES PARA O MODAL DE SELEÇÃO MÚLTIPLA DE PEÇAS
+        // ==============================================================
+        
+        function populateProductCheckboxes() {
+            const container = document.getElementById('product-checkboxes-container');
+            if (!container) return;
+            
+            // Se já foi populado, não faz de novo para não perder a seleção
+            if (container.children.length > 0) return;
+
+            const datalist = document.getElementById('product-list');
+            if (!datalist) return;
+
+            const options = Array.from(datalist.querySelectorAll('option')).map(opt => opt.value).sort();
+            
+            options.forEach(optValue => {
+                const label = document.createElement('label');
+                label.className = 'product-checkbox-label';
+                
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = optValue;
+                cb.className = 'product-checkbox';
+                
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(optValue));
+                container.appendChild(label);
+            });
+        }
+
+        function filterProductCheckboxes() {
+            const term = document.getElementById('product-search-input').value.toUpperCase();
+            const labels = document.querySelectorAll('#product-checkboxes-container label');
+            labels.forEach(label => {
+                const text = label.textContent.toUpperCase();
+                if (text.includes(term)) {
+                    label.style.display = 'flex';
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+        }
+
+        function toggleAllProducts(checked) {
+            const labels = document.querySelectorAll('#product-checkboxes-container label');
+            labels.forEach(label => {
+                // Só altera os que estão visíveis no momento (respeita o filtro de busca)
+                if (label.style.display !== 'none') {
+                    const cb = label.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = checked;
+                }
+            });
+        }
+
         function openProductPdfModal() {
             const modal = document.getElementById('product-pdf-modal');
             if (!modal) return;
@@ -3421,6 +3509,16 @@
             const radio = document.querySelector('input[name="product-report-type"][value="daily"]');
             if (radio) radio.checked = true;
             toggleProductReportType();
+            
+            // Popula a lista de checkboxes com os produtos do datalist
+            populateProductCheckboxes();
+            
+            // Limpa o campo de busca
+            const searchInput = document.getElementById('product-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                filterProductCheckboxes();
+            }
         }
 
         function closeProductPdfModal() {
@@ -3449,16 +3547,27 @@
             const btn = document.getElementById('btn-generate-product-pdf');
             const original = btn ? btn.textContent : '';
 
-            const productInput = document.getElementById('product-filter-input');
-            const productFilterRaw = productInput ? productInput.value.trim() : '';
-            if (!productFilterRaw) {
-                alert('⚠️ Selecione ou digite o produto (peça) que deseja filtrar.');
+            // COLETA MÚLTIPLA DAS PEÇAS SELECIONADAS
+            const selectedCheckboxes = document.querySelectorAll('.product-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('⚠️ Selecione pelo menos uma peça na lista antes de gerar o relatório.');
                 return;
             }
-            const productFilter = normalizeProductKey(productFilterRaw);
+            
+            const selectedProductsRaw = Array.from(selectedCheckboxes).map(cb => cb.value);
+            const productFilters = selectedProductsRaw.map(p => normalizeProductKey(p));
+            
+            // Cria um rótulo amigável para o PDF
+            let displayLabel = '';
+            if (selectedProductsRaw.length <= 3) {
+                displayLabel = selectedProductsRaw.join(', ');
+            } else {
+                displayLabel = `${selectedProductsRaw.length} Peças Selecionadas`;
+            }
 
             if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando...'; }
             showLoading('Gerando PDF...');
+            
             try {
                 const type = document.querySelector('input[name="product-report-type"]:checked').value;
                 let startDate, endDate, label;
@@ -3468,7 +3577,7 @@
                     if (!date) { alert('Selecione uma data.'); return; }
                     startDate = date;
                     endDate = date;
-                    label = `Peça ${productFilterRaw} - Diário - ${date.split('-').reverse().join('/')}`;
+                    label = `Peças (${displayLabel}) - Diário - ${date.split('-').reverse().join('/')}`;
                 } else {
                     const monthValue = document.getElementById('product-monthly-month').value;
                     if (!monthValue) { alert('Selecione um mês.'); return; }
@@ -3476,7 +3585,7 @@
                     startDate = `${monthValue}-01`;
                     const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
                     endDate = `${monthValue}-${String(lastDay).padStart(2, '0')}`;
-                    label = `Peça ${productFilterRaw} - Mensal - ${monthValue.replace('-', '/')}`;
+                    label = `Peças (${displayLabel}) - Mensal - ${monthValue.replace('-', '/')}`;
                 }
 
                 const snapshot = await db.collection(COLLECTION_NAME)
@@ -3504,7 +3613,8 @@
 
                         const filteredProducts = {};
                         Object.keys(inspObj.products).forEach(prodKey => {
-                            if (normalizeProductKey(prodKey) === productFilter) {
+                            // AQUI É A MUDANÇA PRINCIPAL: Verifica se o produto está na lista de selecionados
+                            if (productFilters.includes(normalizeProductKey(prodKey))) {
                                 filteredProducts[prodKey] = inspObj.products[prodKey];
                                 productsMatchedSet.add(prodKey);
                                 const arr = inspObj.products[prodKey];
@@ -3522,10 +3632,10 @@
                     }
                 });
 
-                console.log(`[PDF POR PEÇA] Filtro aplicado: "${productFilter}" | Docs com match: ${reportData.length} | Máquinas filtradas: ${totalMachinesMatched} | Produtos exatos encontrados: ${[...productsMatchedSet].join(', ')}`);
+                console.log(`[PDF POR PEÇA] Filtros aplicados: "${productFilters.join(', ')}" | Docs com match: ${reportData.length} | Máquinas filtradas: ${totalMachinesMatched}`);
 
                 if (reportData.length === 0) {
-                    alert(`⚠️ Nenhum dado encontrado para o produto "${productFilterRaw}" no período selecionado.\n\nVerifique se o código do produto está correto (ex: "D50 R PR").`);
+                    alert(`⚠️ Nenhum dado encontrado para as peças selecionadas no período.\n\nVerifique se o código do produto está correto.`);
                     return;
                 }
 
@@ -3545,12 +3655,13 @@
                 const pdfScale = calculateOptimalScale(tempDiv);
                 console.log(`[PDF POR PEÇA] Altura do conteúdo: ${tempDiv.scrollHeight}px | Escala: ${pdfScale}`);
 
-                const safeProduct = productFilterRaw.replace(/[^a-zA-Z0-9]/g, '_');
+                // Cria um nome de arquivo seguro
+                const safeProduct = displayLabel.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
                 const safeLabel = label.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '_');
 
                 const opt = {
                     margin: 10,
-                    filename: `Relatorio_Peca_${safeProduct}_${safeLabel}.pdf`,
+                    filename: `Relatorio_Pecas_${safeProduct}_${safeLabel}.pdf`,
                     image: { type: 'jpeg', quality: 1 },
                     html2canvas: { scale: pdfScale, useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
