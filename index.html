@@ -510,9 +510,6 @@
             color: #a61e1e;
         }
 
-        /* ============================================================
-           ALERTA PISCANTE DE MÉDIA ACIMA DO MÁXIMO
-           ============================================================ */
         @keyframes blinkAlert {
             0%, 100% {
                 background-color: #f8d7da;
@@ -874,9 +871,6 @@
             background: linear-gradient(90deg, #28a745, #48c964);
         }
 
-        /* ============================================================
-           GRÁFICO DE RANGE (MÍN / MÉDIA / MÁX) — CORES ROXAS
-           ============================================================ */
         .range-chart-legend {
             display: flex;
             gap: 16px;
@@ -967,9 +961,6 @@
             z-index: 1;
         }
 
-        /* ============================================================
-           CHIPS DE VALORES (medidos + referência empilhados)
-           ============================================================ */
         .range-chart-values {
             display: flex;
             flex-direction: column;
@@ -996,11 +987,9 @@
             font-weight: 600;
             color: #241245;
         }
-        /* MEDIDOS: min roxo fraquinho | méd roxo quase escuro | máx roxo muito escuro */
         .range-chart-values .rv-min { background: #f3e8ff; color: #6b21a8; }
         .range-chart-values .rv-avg { background: #6b21a8; color: #ffffff; }
         .range-chart-values .rv-max { background: #3b0764; color: #ffffff; }
-        /* REFERÊNCIA (produto) */
         .range-chart-values .rv-ref-min { background: #f3e8ff; color: #6b21a8; border: 1px dashed #a855f7; }
         .range-chart-values .rv-ref-mid { background: #6b21a8; color: #ffffff; border: 1px dashed #a855f7; }
         .range-chart-values .rv-ref-max { background: #3b0764; color: #ffffff; border: 1px dashed #a855f7; }
@@ -1197,9 +1186,6 @@
             }
         }
 
-        /* ============================================================
-           ABAS (TABS)
-           ============================================================ */
         .tab-bar {
             display: flex;
             gap: 8px;
@@ -1242,9 +1228,6 @@
             animation: fadeSlideIn 0.3s ease;
         }
 
-        /* ============================================================
-           TROCA DE VERSÃO
-           ============================================================ */
         .version-change-grid {
             display: grid;
             grid-template-columns: 1fr 60px 1fr;
@@ -1518,7 +1501,6 @@
             }
         }
 
-        /* Área de captura do print (fora da tela) */
         #version-print-area {
             position: fixed;
             left: -9999px;
@@ -1527,9 +1509,6 @@
             background: #ffffff;
         }
 
-        /* ============================================================
-           AUTO-FILL TOAST (feedback do auto-preenchimento)
-           ============================================================ */
         .auto-fill-toast {
             position: fixed;
             bottom: 30px;
@@ -1585,17 +1564,11 @@
         </div>
     </header>
 
-    <!-- ============================================================
-         BARRA DE ABAS
-         ============================================================ -->
     <div class="tab-bar">
         <button type="button" class="tab-btn active" id="tab-btn-inspecao" onclick="switchTab('inspecao', this)">📋 Inspeção de Peso</button>
         <button type="button" class="tab-btn" id="tab-btn-troca-versao" onclick="switchTab('troca-versao', this)">🔄 Troca de Versão</button>
     </div>
 
-    <!-- ============================================================
-         ABA: INSPEÇÃO DE PESO (conteúdo original)
-         ============================================================ -->
     <div id="tab-inspecao" class="tab-pane active">
         <div class="toolbar">
             <div class="toolbar-left">
@@ -1740,9 +1713,6 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         ABA: TROCA DE VERSÃO
-         ============================================================ -->
     <div id="tab-troca-versao" class="tab-pane">
         <div class="toolbar">
             <div class="toolbar-left">
@@ -1775,7 +1745,6 @@
         </div>
 
         <div class="version-change-grid">
-            <!-- CARD: PEÇA ATUAL (SAINDO) -->
             <div class="version-card current-card">
                 <div class="version-card-header">
                     <span class="version-badge outgoing">SAINDO</span>
@@ -1845,10 +1814,8 @@
                 </div>
             </div>
 
-            <!-- SETA -->
             <div class="version-arrow">➜</div>
 
-            <!-- CARD: NOVA PEÇA (ENTRANDO) -->
             <div class="version-card new-card">
                 <div class="version-card-header">
                     <span class="version-badge incoming">ENTRANDO</span>
@@ -1930,7 +1897,6 @@
             </div>
         </div>
 
-        <!-- STATUS DA TROCA + MOTIVO DO ACOMPANHAMENTO -->
         <div class="version-summary-bar" style="margin-top:12px;">
             <div class="summary-item" style="flex:1; min-width:220px;">
                 <span class="summary-label">✅ Status da Troca</span>
@@ -1978,9 +1944,6 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         NOVO MODAL: PDF POR PEÇA (produto específico)
-         ============================================================ -->
     <div id="product-pdf-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
         <div style="background:#fff; padding:30px; border-radius:12px; width:480px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <h3 style="color:#241245; margin-bottom:20px; text-align:center;">📦 Gerar PDF por Peça</h3>
@@ -2021,9 +1984,6 @@
     </div>
 
     <script>
-        /* ============================================================
-           CONFIGURAÇÃO FIREBASE
-           ============================================================ */
         const firebaseConfig = {
             apiKey: "AIzaSyCufcKWTkWG0mtRq1iPOkSQbdltdmG7FDI",
             authDomain: "inspecao-78dd5.firebaseapp.com",
@@ -2045,9 +2005,6 @@
         const INSPECTOR_CACHE_KEY = 'dr_inspector_names_v1';
         const INSPECTOR_LOOKBACK_DAYS = 90;
 
-        /* ============================================================
-           ESTADO GLOBAL
-           ============================================================ */
         const today = new Date().toISOString().split('T')[0];
         let machineCounter = 0;
         let loadedDate = null;
@@ -2056,9 +2013,6 @@
         let isSaving = false;
         let lastAutoFilledMachine = null;
 
-        /* ============================================================
-           HELPERS
-           ============================================================ */
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str)
@@ -2102,9 +2056,20 @@
             if (hd) hd.value = today;
         }
 
-        /* ============================================================
-           DATALIST DE INSPETORES
-           ============================================================ */
+        function calculateOptimalScale(container) {
+            try {
+                const height = container.scrollHeight || container.offsetHeight || 10000;
+                const MAX_CANVAS_HEIGHT = 28000;
+                const BASE_SCALE = 2;
+                const MIN_SCALE = 0.4;
+                if (height * BASE_SCALE <= MAX_CANVAS_HEIGHT) return BASE_SCALE;
+                const safeScale = MAX_CANVAS_HEIGHT / height;
+                return Math.max(MIN_SCALE, safeScale);
+            } catch (e) {
+                return 1.5;
+            }
+        }
+
         function loadInspectorNamesFromCache() {
             try {
                 const raw = localStorage.getItem(INSPECTOR_CACHE_KEY);
@@ -2182,9 +2147,6 @@
             }
         }
 
-        /* ============================================================
-           CARTÃO DE MÁQUINA
-           ============================================================ */
         function addMachineCard(machineData = null) {
             const container = document.getElementById('machines-container');
             const cardId = `machine-${++machineCounter}`;
@@ -2458,10 +2420,6 @@
             });
         }
 
-        /* ============================================================
-           ALERTA PISCANTE — SOMENTE QUANDO A MÉDIA GERAL (SOMA/QTD)
-           FICA ACIMA DO MÁXIMO
-           ============================================================ */
         function checkOutOfSpec(cardId) {
             const card = document.getElementById(cardId);
             if (!card) return;
@@ -2556,9 +2514,6 @@
             checkOutOfSpec(cardId);
         }
 
-        /* ============================================================
-           COLETA DE DADOS DO FORMULÁRIO
-           ============================================================ */
         function collectFormData() {
             const cards = document.querySelectorAll('.machine-card');
             const machines = [];
@@ -2635,9 +2590,6 @@
             return grouped;
         }
 
-        /* ============================================================
-           SALVAR / EDITAR
-           ============================================================ */
         async function saveDailyData() {
             if (isSaving) return;
             const date = document.getElementById('selected-date').value;
@@ -2762,9 +2714,6 @@
             }
         }
 
-        /* ============================================================
-           RESET / LIMPAR
-           ============================================================ */
         function resetForm() {
             const cards = document.querySelectorAll('.machine-card');
             if (hasUnsavedChanges && cards.length > 0) {
@@ -2810,9 +2759,6 @@
             if (hs) hs.classList.remove('visible');
         }
 
-        /* ============================================================
-           HISTÓRICO
-           ============================================================ */
         function toggleHistory() {
             const hs = document.getElementById('history-section');
             if (hs && hs.classList.contains('visible')) hideHistory();
@@ -3108,9 +3054,6 @@
             }
         }
 
-        /* ============================================================
-           RELATÓRIO EM TELA CHEIA (DADOS ATUAIS)
-           ============================================================ */
         function openCurrentDataReport() {
             const machines = collectFormData();
             if (machines.length === 0) {
@@ -3165,12 +3108,6 @@
                 html += `</div>`;
             }
 
-            /* ============================================================
-               GRÁFICO: MÉDIA GERAL POR MÁQUINA
-               Linha 1 = REFERÊNCIA (Mín/Ideal/Máx)
-               Linha 2 = MEDIDOS (Mín/Média/Máx)
-               CORES: SOMENTE ROXO
-               ============================================================ */
             html += `<div class="dash-section-title">📊 Média Geral por Máquina — Referência (linha 1) e Medidos (linha 2)</div>`;
             html += `<div class="range-chart-legend">
                 <span><span class="dot" style="background:linear-gradient(135deg,#e9d5ff,#3b0764);"></span> Faixa mín–máx (medidos)</span>
@@ -3181,7 +3118,6 @@
             html += `<div class="bar-chart-container">`;
 
             machines.forEach(m => {
-                // Coletar TODAS as medições da máquina
                 const allMachineVals = [];
                 m.rows.forEach(r => {
                     ['m1', 'm3', 'm4'].forEach(k => {
@@ -3215,7 +3151,6 @@
                 const dataMin = Math.min(...allMachineVals);
                 const dataMax = Math.max(...allMachineVals);
 
-                // Escala: engloba tolerância e dados com folga
                 const refMin = !isNaN(tolMin) ? Math.min(tolMin, dataMin) : dataMin;
                 const refMax = !isNaN(tolMax) ? Math.max(tolMax, dataMax) : dataMax;
                 const pad = Math.max((refMax - refMin) * 0.08, 0.1);
@@ -3231,10 +3166,8 @@
                 const tolMaxPct = !isNaN(tolMax) ? pct(tolMax) : null;
                 const tolMidPct = !isNaN(tolMid) ? pct(tolMid) : null;
 
-                // COR ROXA única para o marcador (média = roxo quase escuro)
                 const markerColor = '#6b21a8';
 
-                // Chips de REFERÊNCIA (do produto: mín / ideal / máx)
                 const refMinHTML = !isNaN(tolMin)
                     ? `<span class="rv rv-ref-min" title="Mínimo da Referência (Produto)">📌 Ref 🔻 ${tolMin.toFixed(2).replace('.',',')}</span>`
                     : '';
@@ -3369,9 +3302,6 @@
             }
         }
 
-        /* ============================================================
-           PDF (DIÁRIO / MENSAL)
-           ============================================================ */
         function openPdfReportModal() {
             const modal = document.getElementById('pdf-report-modal');
             if (!modal) return;
@@ -3451,11 +3381,14 @@
                 tempDiv.style.margin = '0 auto';
                 document.getElementById('pdf-generation-container').appendChild(tempDiv);
 
+                const pdfScale = calculateOptimalScale(tempDiv);
+                console.log(`[PDF] Altura do conteúdo: ${tempDiv.scrollHeight}px | Escala: ${pdfScale}`);
+
                 const opt = {
                     margin: 10,
                     filename: `Relatorio_${label.replace(/\s+/g, '_')}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
+                    html2canvas: { scale: pdfScale, useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
                     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                 };
@@ -3472,9 +3405,6 @@
             }
         }
 
-        /* ============================================================
-           PDF POR PEÇA (produto específico)
-           ============================================================ */
         function openProductPdfModal() {
             const modal = document.getElementById('product-pdf-modal');
             if (!modal) return;
@@ -3504,7 +3434,6 @@
             if (monthlyField) monthlyField.style.display = (type === 'monthly') ? 'block' : 'none';
         }
 
-        // Normaliza strings de produto: colapsa espaços múltiplos, remove bordas, uppercase
         function normalizeProductKey(s) {
             return String(s === null || s === undefined ? '' : s)
                 .replace(/\s+/g, ' ')
@@ -3556,10 +3485,6 @@
                     return;
                 }
 
-                // ============================================================
-                // FILTRO POR PRODUTO — mantém SOMENTE os produtos que casam
-                // com o filtro (normalizado). Todo o resto é descartado.
-                // ============================================================
                 const reportData = [];
                 let totalMachinesMatched = 0;
                 let productsMatchedSet = new Set();
@@ -3603,7 +3528,6 @@
                 reportData.sort((a, b) => a.date.localeCompare(b.date));
 
                 const isMonthly = (type === 'monthly');
-                // PDF POR PEÇA: sempre inclui detalhamento por cavidade
                 const reportHTML = buildReportHTML(reportData, label, isMonthly, true);
 
                 const tempDiv = document.createElement('div');
@@ -3614,6 +3538,9 @@
                 tempDiv.style.margin = '0 auto';
                 document.getElementById('pdf-generation-container').appendChild(tempDiv);
 
+                const pdfScale = calculateOptimalScale(tempDiv);
+                console.log(`[PDF POR PEÇA] Altura do conteúdo: ${tempDiv.scrollHeight}px | Escala: ${pdfScale}`);
+
                 const safeProduct = productFilterRaw.replace(/[^a-zA-Z0-9]/g, '_');
                 const safeLabel = label.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '_');
 
@@ -3621,7 +3548,7 @@
                     margin: 10,
                     filename: `Relatorio_Peca_${safeProduct}_${safeLabel}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
+                    html2canvas: { scale: pdfScale, useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
                     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                 };
@@ -3638,8 +3565,6 @@
             }
         }
 
-        // includeCavityDetails: se true, o modo MENSAL também mostra o detalhamento
-        // de cada cavidade (M1/M3/M4) de cada máquina. Padrão: false (comportamento original).
         function buildReportHTML(reportData, label, isMonthly = false, includeCavityDetails = false) {
             return isMonthly
                 ? buildMonthlyReportHTML(reportData, label, includeCavityDetails)
@@ -3689,7 +3614,9 @@
                                 });
                             });
                             totalMeasurements += measurementCount;
-                            allValues.push(...machineValues);
+                            for (let i = 0; i < machineValues.length; i++) {
+                                allValues.push(machineValues[i]);
+                            }
                             if (status === 'APROVADO') approvedCount++;
                             else rejectedCount++;
                             if (m.problema) problems.push({ date, machine: machineName, problema: m.problema, inspector, product });
@@ -3764,10 +3691,6 @@
                 html += `</div>`;
             }
 
-            /* ============================================================
-               GRÁFICO: MÉDIA POR MÁQUINA — REFERÊNCIA + MEDIDOS
-               CORES: SOMENTE ROXO
-               ============================================================ */
             html += `<div class="avoid-break" style="margin-bottom:14px;">`;
             html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Máquina — Referência (linha 1) e Medidos (linha 2)</h3>`;
             html += `<div style="background:#f8f7fc; padding:6px 10px; border-radius:6px; border:1px dashed #d5cfe8; font-size:9px; color:#555; margin-bottom:10px;">
@@ -3793,8 +3716,6 @@
                 const dataMin = allVals.length > 0 ? Math.min(...allVals) : 0;
                 const dataMax = allVals.length > 0 ? Math.max(...allVals) : 0;
                 const dataAvg = m.totalAvg || 0;
-
-                const markerColor = '#6b21a8';
 
                 const fmt2 = (n) => isNaN(n) ? '—' : n.toFixed(2).replace('.', ',');
                 const fmt3 = (n) => isNaN(n) ? '—' : n.toFixed(3).replace('.', ',');
@@ -3900,6 +3821,7 @@
             const allProblems = [];
             const allProductsSet = new Set();
             const productSummary = {};
+            const productDaySummary = {};
 
             reportData.forEach(day => {
                 const date = day.date;
@@ -3944,7 +3866,6 @@
                             if (m.status === 'APROVADO') productSummary[prodKey].approved++;
                             else productSummary[prodKey].rejected++;
 
-                            // Captura tolerâncias do produto (usa a primeira não-nula)
                             if (productSummary[prodKey].tolMin === null && m.tolMin) {
                                 const n = parseFloat(String(m.tolMin).replace(',', '.'));
                                 if (!isNaN(n)) productSummary[prodKey].tolMin = n;
@@ -3965,7 +3886,35 @@
                                     }
                                 });
                             });
-                            // Guarda todos os dados necessários para o detalhamento por cavidade
+
+                            // ============================================================
+                            // RESUMO POR DIA E PRODUTO — é o que faz aparecer as datas
+                            // ============================================================
+                            if (!productDaySummary[date]) productDaySummary[date] = {};
+                            if (!productDaySummary[date][prodKey]) {
+                                productDaySummary[date][prodKey] = { values: [], machines: 0, tolMin: null, tolMid: null, tolMax: null };
+                            }
+                            productDaySummary[date][prodKey].machines++;
+                            if (productDaySummary[date][prodKey].tolMin === null && m.tolMin) {
+                                const n = parseFloat(String(m.tolMin).replace(',', '.'));
+                                if (!isNaN(n)) productDaySummary[date][prodKey].tolMin = n;
+                            }
+                            if (productDaySummary[date][prodKey].tolMid === null && m.tolMid) {
+                                const n = parseFloat(String(m.tolMid).replace(',', '.'));
+                                if (!isNaN(n)) productDaySummary[date][prodKey].tolMid = n;
+                            }
+                            if (productDaySummary[date][prodKey].tolMax === null && m.tolMax) {
+                                const n = parseFloat(String(m.tolMax).replace(',', '.'));
+                                if (!isNaN(n)) productDaySummary[date][prodKey].tolMax = n;
+                            }
+                            rows.forEach(r => {
+                                [r.m1, r.m3, r.m4].forEach(v => {
+                                    if (v !== '' && !isNaN(parseFloat(v))) {
+                                        productDaySummary[date][prodKey].values.push(parseFloat(v));
+                                    }
+                                });
+                            });
+
                             summary.details.push({
                                 machine: m.machine,
                                 product: prodKey,
@@ -3986,7 +3935,11 @@
             });
 
             const allValues = [];
-            Object.values(dailySummary).forEach(s => allValues.push(...s.values));
+            Object.values(dailySummary).forEach(s => {
+                for (let i = 0; i < s.values.length; i++) {
+                    allValues.push(s.values[i]);
+                }
+            });
             const overallAvg = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
             const totalMachines = Object.values(dailySummary).reduce((acc, s) => acc + s.machines, 0);
             const totalApproved = Object.values(dailySummary).reduce((acc, s) => acc + s.approved, 0);
@@ -4050,8 +4003,7 @@
             }
 
             /* ============================================================
-               GRÁFICO PDF MENSAL: POR PRODUTO — REFERÊNCIA + MEDIDOS
-               CORES: SOMENTE ROXO
+               SEÇÃO 1: MÉDIA POR PRODUTO (agregado do mês)
                ============================================================ */
             html += `<div class="avoid-break" style="margin-bottom:14px;">`;
             html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Produto — Referência (linha 1) e Medidos (linha 2)</h3>`;
@@ -4069,8 +4021,6 @@
                 const tolMinNum = s.tolMin;
                 const tolMidNum = s.tolMid;
                 const tolMaxNum = s.tolMax;
-
-                const markerColor = '#6b21a8';
 
                 const fmt2 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(2).replace('.', ',');
                 const fmt3 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(3).replace('.', ',');
@@ -4091,6 +4041,64 @@
                     </div>
                     <div style="font-size:10px; color:#888; min-width:70px;">${s.machines} máq.</div>
                 </div>`;
+            });
+            html += `</div>`;
+
+            /* ============================================================
+               SEÇÃO 2: MÉDIA POR DIA E PRODUTO — MOSTRA A DATA DE CADA DIA
+               Exemplo de saída:
+                 📅 01/09/2026
+                    D32 - 📌 Ref 🔻 X / 📌 Ref 🎯 X / 📌 Ref 🔺 X
+                          🔻 X / 🎯 X / 🔺 X
+                    D50 - ...
+                 📅 02/09/2026
+                    D60 - ...
+                    D80 - ...
+               ============================================================ */
+            html += `<div class="avoid-break" style="margin-bottom:14px;">`;
+            html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Dia e Produto — Referência (linha 1) e Medidos (linha 2)</h3>`;
+            html += `<div style="background:#f8f7fc; padding:6px 10px; border-radius:6px; border:1px dashed #d5cfe8; font-size:9px; color:#555; margin-bottom:10px;">
+                <span style="font-weight:600; margin-right:10px;">📌 Ref. (produto) — linha 1 &nbsp;|&nbsp; 🔻 🎯 🔺 Medidos — linha 2</span>
+            </div>`;
+
+            const sortedDatesForDayChart = Object.keys(productDaySummary).sort();
+            sortedDatesForDayChart.forEach(date => {
+                const dateFormatted = date.split('-').reverse().join('/');
+                html += `<div style="background:linear-gradient(135deg,#f0edf7,#e8e2f4); padding:8px 12px; border-radius:6px; margin:12px 0 8px 0; font-weight:700; color:#241245; font-size:12px; border-left:4px solid #6b21a8;">
+                    📅 ${dateFormatted}
+                </div>`;
+
+                const dayProducts = Object.keys(productDaySummary[date]).sort();
+                dayProducts.forEach(prodKey => {
+                    const s = productDaySummary[date][prodKey];
+                    const prodAvg = s.values.length > 0 ? s.values.reduce((a, b) => a + b, 0) / s.values.length : 0;
+                    const prodMin = s.values.length > 0 ? Math.min(...s.values) : 0;
+                    const prodMax = s.values.length > 0 ? Math.max(...s.values) : 0;
+
+                    const tolMinNum = s.tolMin;
+                    const tolMidNum = s.tolMid;
+                    const tolMaxNum = s.tolMax;
+
+                    const fmt2 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(2).replace('.', ',');
+                    const fmt3 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(3).replace('.', ',');
+
+                    const refMinChip = tolMinNum !== null ? `<span class="pdf-chip" style="background:#f3e8ff; color:#6b21a8; border:1px dashed #a855f7;">📌 Ref 🔻 ${fmt2(tolMinNum)}</span>` : '';
+                    const refMidChip = tolMidNum !== null ? `<span class="pdf-chip" style="background:#6b21a8; color:#ffffff; border:1px dashed #a855f7;">📌 Ref 🎯 ${fmt2(tolMidNum)}</span>` : '';
+                    const refMaxChip = tolMaxNum !== null ? `<span class="pdf-chip" style="background:#3b0764; color:#ffffff; border:1px dashed #a855f7;">📌 Ref 🔺 ${fmt2(tolMaxNum)}</span>` : '';
+
+                    const medMinChip = `<span class="pdf-chip" style="background:#f3e8ff; color:#6b21a8;">🔻 ${fmt2(prodMin)}</span>`;
+                    const medAvgChip = `<span class="pdf-chip" style="background:#6b21a8; color:#ffffff;">🎯 ${fmt3(prodAvg)}</span>`;
+                    const medMaxChip = `<span class="pdf-chip" style="background:#3b0764; color:#ffffff;">🔺 ${fmt2(prodMax)}</span>`;
+
+                    html += `<div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #eee; flex-wrap:wrap;">
+                        <div style="min-width:70px; font-weight:bold; font-size:11px; color:#241245; text-align:right;">${escapeHtml(prodKey)}</div>
+                        <div style="flex:1; min-width:240px; text-align:right;">
+                            <div style="margin-bottom:2px;">${refMinChip}${refMidChip}${refMaxChip}</div>
+                            <div>${medMinChip}${medAvgChip}${medMaxChip}</div>
+                        </div>
+                        <div style="font-size:10px; color:#888; min-width:70px;">${s.machines} máq.</div>
+                    </div>`;
+                });
             });
             html += `</div>`;
 
@@ -4152,9 +4160,6 @@
                 });
                 html += `</tbody></table></div>`;
 
-                // ============================================================
-                // DETALHAMENTO POR CAVIDADE (apenas quando solicitado — PDF POR PEÇA)
-                // ============================================================
                 if (includeCavityDetails) {
                     s.details.forEach(d => {
                         const minTol = parseFloat(String(d.tolMin).replace(',', '.'));
@@ -4162,7 +4167,6 @@
                         const cavityCount = Math.min(d.cavity || 10, 10);
                         const dt = d.rows || [];
 
-                        // Conta medições para saber se vale a pena mostrar
                         let hasAnyValue = false;
                         for (let i = 0; i < cavityCount; i++) {
                             const r = dt[i] || {};
@@ -4225,15 +4229,9 @@
             return html;
         }
 
-        /* ============================================================
-           COMPATIBILIDADE COM FUNÇÕES ANTIGAS
-           ============================================================ */
         function openMonthlyReport() { openPdfReportModal(); }
         function generateMonthlyPDF() { generateReportPDF(); }
 
-        /* ============================================================
-           ABAS — NAVEGAÇÃO
-           ============================================================ */
         function switchTab(tabName, btn) {
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -4246,9 +4244,6 @@
             }
         }
 
-        /* ============================================================
-           TROCA DE VERSÃO — LÓGICA
-           ============================================================ */
         const versionPhotos = { current: null, new: null };
 
         function triggerPhotoUpload(side) {
@@ -4359,9 +4354,6 @@
             return el ? el.value.trim() : '';
         }
 
-        /* ============================================================
-           AUTO-PREENCHIMENTO DA PEÇA ATUAL (SAINDO)
-           ============================================================ */
         function showAutoFillToast(message, type = 'success') {
             const existing = document.querySelector('.auto-fill-toast');
             if (existing) existing.remove();
@@ -4462,10 +4454,6 @@
                 if (inspectorEl) { inspectorEl.value = foundInspector || found.inspector || ''; markFieldAsAutoFilled(inspectorEl); }
                 if (collaboratorEl) { collaboratorEl.value = found.collaborator || ''; markFieldAsAutoFilled(collaboratorEl); }
 
-                // ============================================================
-                // NOVO: Preenche Peso Mín./Médio/Máx. com os valores REAIS
-                // (mínimo, média e máximo) das medições da máquina.
-                // ============================================================
                 const rows = found.rows || [];
                 const allMeasurements = [];
                 rows.forEach(r => {
@@ -4504,9 +4492,6 @@
             }
         }
 
-        /* ============================================================
-           BUILD PRINT HTML (TROCA DE VERSÃO)
-           ============================================================ */
         function buildVersionPrintHTML() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('pt-BR');
@@ -4742,9 +4727,6 @@
             }
         }
 
-        /* ============================================================
-           EVENTOS GLOBAIS
-           ============================================================ */
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 const overlay = document.getElementById('fullscreen-report-overlay');
@@ -4810,14 +4792,12 @@
 
             updateVCSummary();
 
-            // Listener para auto-preenchimento ao sair do campo Máquina (peça atual)
             const vcCurrentMachineInput = document.getElementById('vc-current-machine');
             if (vcCurrentMachineInput) {
                 vcCurrentMachineInput.addEventListener('change', autoFillCurrentMachineInfo);
                 vcCurrentMachineInput.addEventListener('blur', autoFillCurrentMachineInfo);
             }
 
-            // Reset do cache de auto-preenchimento quando a data mudar
             if (sdInput) {
                 sdInput.addEventListener('change', function() {
                     lastAutoFilledMachine = null;
