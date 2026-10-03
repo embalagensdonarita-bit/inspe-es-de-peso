@@ -2056,19 +2056,23 @@
             if (hd) hd.value = today;
         }
 
+        // ============ ALTERAÇÃO DE QUALIDADE — PDF ============
+        // Escala base aumentada de 2 para 3, limite de canvas de 28000 para 45000
+        // e escala mínima de 0.4 para 0.5 para gerar PDFs com imagem mais nítida.
         function calculateOptimalScale(container) {
             try {
                 const height = container.scrollHeight || container.offsetHeight || 10000;
-                const MAX_CANVAS_HEIGHT = 28000;
-                const BASE_SCALE = 2;
-                const MIN_SCALE = 0.4;
+                const MAX_CANVAS_HEIGHT = 45000;
+                const BASE_SCALE = 3;
+                const MIN_SCALE = 0.5;
                 if (height * BASE_SCALE <= MAX_CANVAS_HEIGHT) return BASE_SCALE;
                 const safeScale = MAX_CANVAS_HEIGHT / height;
                 return Math.max(MIN_SCALE, safeScale);
             } catch (e) {
-                return 1.5;
+                return 2;
             }
         }
+        // =======================================================
 
         function loadInspectorNamesFromCache() {
             try {
@@ -3387,7 +3391,7 @@
                 const opt = {
                     margin: 10,
                     filename: `Relatorio_${label.replace(/\s+/g, '_')}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
+                    image: { type: 'jpeg', quality: 1 },
                     html2canvas: { scale: pdfScale, useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
                     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -3547,7 +3551,7 @@
                 const opt = {
                     margin: 10,
                     filename: `Relatorio_Peca_${safeProduct}_${safeLabel}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
+                    image: { type: 'jpeg', quality: 1 },
                     html2canvas: { scale: pdfScale, useCORS: true, logging: false },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
                     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -4046,14 +4050,6 @@
 
             /* ============================================================
                SEÇÃO 2: MÉDIA POR DIA E PRODUTO — MOSTRA A DATA DE CADA DIA
-               Exemplo de saída:
-                 📅 01/09/2026
-                    D32 - 📌 Ref 🔻 X / 📌 Ref 🎯 X / 📌 Ref 🔺 X
-                          🔻 X / 🎯 X / 🔺 X
-                    D50 - ...
-                 📅 02/09/2026
-                    D60 - ...
-                    D80 - ...
                ============================================================ */
             html += `<div class="avoid-break" style="margin-bottom:14px;">`;
             html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Dia e Produto — Referência (linha 1) e Medidos (linha 2)</h3>`;
