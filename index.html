@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <style>
         :root {
             --primary-color: #241245;
@@ -210,6 +211,15 @@
         .btn-warning:hover:not(:disabled) {
             background: #ec971f;
             box-shadow: 0 4px 12px rgba(240, 173, 78, 0.4);
+        }
+        .btn-excel {
+            background: linear-gradient(135deg, #1D6F42, #2b8d55);
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(29, 111, 66, 0.3);
+        }
+        .btn-excel:hover:not(:disabled) {
+            box-shadow: 0 6px 18px rgba(29, 111, 66, 0.45);
+            filter: brightness(1.05);
         }
         #machines-container {
             display: flex;
@@ -1551,7 +1561,7 @@
             transition: all 0.4s ease;
         }
         
-        /* NOVO ESTILO PARA A LISTA DE SELEÇÃO DE PEÇAS */
+        /* LISTA DE SELEÇÃO DE PEÇAS */
         .product-checkbox-label {
             display: flex;
             align-items: center;
@@ -1603,6 +1613,8 @@
                 <button type="button" class="btn btn-accent" onclick="openCurrentDataReport()">📊 RELATORIO</button>
                 <button type="button" class="btn btn-warning" onclick="openPdfReportModal()">📅 PDF MENSAL</button>
                 <button type="button" class="btn btn-pdf" onclick="openProductPdfModal()">📦 PDF POR PEÇA</button>
+                <button type="button" class="btn btn-excel" onclick="openExcelReportModal()">📊 EXCEL</button>
+                <button type="button" class="btn btn-excel" onclick="openProductExcelModal()">📦 EXCEL POR PEÇA</button>
                 <button type="button" class="btn btn-success" onclick="addMachineCard()">➕ Adicionar Máquina</button>
                 <button type="button" id="btn-save-daily" class="btn btn-primary" onclick="saveDailyData()">💾 Salvar Histórico do Dia</button>
                 <button type="button" id="btn-save-edits" class="btn btn-warning" onclick="saveEdits()" style="display:none;">💾 Salvar Alterações</button>
@@ -1967,7 +1979,6 @@
         </div>
     </div>
 
-    <!-- MODAL PDF POR PEÇA MODIFICADO -->
     <div id="product-pdf-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
         <div style="background:#fff; padding:30px; border-radius:12px; width:520px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <h3 style="color:#241245; margin-bottom:20px; text-align:center;">📦 Gerar PDF por Peça</h3>
@@ -1980,9 +1991,7 @@
                     <button type="button" class="btn btn-outline" style="padding:6px 10px; font-size:11px; flex:1;" onclick="toggleAllProducts(true)">Marcar Visíveis</button>
                     <button type="button" class="btn btn-outline" style="padding:6px 10px; font-size:11px; flex:1;" onclick="toggleAllProducts(false)">Desmarcar Todos</button>
                 </div>
-                <div id="product-checkboxes-container" style="height: 200px; overflow-y: auto; border: 1.5px solid #ccc; border-radius: 6px; padding: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 2px;">
-                    <!-- Checkboxes serão gerados dinamicamente aqui -->
-                </div>
+                <div id="product-checkboxes-container" style="height: 200px; overflow-y: auto; border: 1.5px solid #ccc; border-radius: 6px; padding: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 2px;"></div>
                 <small style="display:block; color:#888; font-size:11px; margin-top:4px;">Selecione uma ou mais peças na lista acima.</small>
             </div>
             
@@ -2005,6 +2014,74 @@
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
                 <button type="button" class="btn btn-outline" onclick="closeProductPdfModal()">Cancelar</button>
                 <button type="button" class="btn btn-success" id="btn-generate-product-pdf" onclick="generateProductReportPDF()">📥 Gerar PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ EXCEL MODAL (DIÁRIO/MENSAL) ============ -->
+    <div id="excel-report-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:30px; border-radius:12px; width:450px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <h3 style="color:#1D6F42; margin-bottom:20px; text-align:center;">📊 Gerar Relatório Excel</h3>
+            <p style="color:#555; margin-bottom:15px;">Escolha o tipo de relatório:</p>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; margin-bottom:8px;">
+                    <input type="radio" name="excel-report-type" value="daily" checked onchange="toggleExcelReportType()"> Diário (um dia específico)
+                </label>
+                <label style="display:block;">
+                    <input type="radio" name="excel-report-type" value="monthly" onchange="toggleExcelReportType()"> Mensal (um mês inteiro)
+                </label>
+            </div>
+            <div id="excel-daily-field" style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📅 Selecione o dia:</label>
+                <input type="date" id="excel-daily-date" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div id="excel-monthly-field" style="display:none; margin-bottom:20px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📅 Selecione o mês:</label>
+                <input type="month" id="excel-monthly-month" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="closeExcelReportModal()">Cancelar</button>
+                <button type="button" class="btn btn-excel" id="btn-generate-excel" onclick="generateExcelReport()">📥 Gerar Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ EXCEL POR PEÇA MODAL ============ -->
+    <div id="product-excel-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:30px; border-radius:12px; width:520px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <h3 style="color:#1D6F42; margin-bottom:20px; text-align:center;">📦 Gerar Excel por Peça</h3>
+            <p style="color:#555; margin-bottom:15px;">Escolha as peças e o tipo de relatório:</p>
+            
+            <div style="margin-bottom:15px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📦 Produtos / Peças:</label>
+                <input type="text" id="product-excel-search-input" placeholder="🔍 Digite para buscar uma peça..." oninput="filterProductExcelCheckboxes()" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:14px; margin-bottom:8px;" autocomplete="off">
+                <div style="display:flex; gap:10px; margin-bottom:8px;">
+                    <button type="button" class="btn btn-outline" style="padding:6px 10px; font-size:11px; flex:1;" onclick="toggleAllProductsExcel(true)">Marcar Visíveis</button>
+                    <button type="button" class="btn btn-outline" style="padding:6px 10px; font-size:11px; flex:1;" onclick="toggleAllProductsExcel(false)">Desmarcar Todos</button>
+                </div>
+                <div id="product-excel-checkboxes-container" style="height: 200px; overflow-y: auto; border: 1.5px solid #ccc; border-radius: 6px; padding: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 2px;"></div>
+                <small style="display:block; color:#888; font-size:11px; margin-top:4px;">Selecione uma ou mais peças na lista acima.</small>
+            </div>
+            
+            <div style="margin-bottom:20px;">
+                <label style="display:block; margin-bottom:8px;">
+                    <input type="radio" name="product-excel-type" value="daily" checked onchange="toggleProductExcelType()"> Diário (um dia específico)
+                </label>
+                <label style="display:block;">
+                    <input type="radio" name="product-excel-type" value="monthly" onchange="toggleProductExcelType()"> Mensal (um mês inteiro)
+                </label>
+            </div>
+            <div id="product-excel-daily-field" style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📅 Selecione o dia:</label>
+                <input type="date" id="product-excel-daily-date" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div id="product-excel-monthly-field" style="display:none; margin-bottom:20px;">
+                <label style="display:block; font-weight:600; margin-bottom:5px;">📅 Selecione o mês:</label>
+                <input type="month" id="product-excel-monthly-month" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="closeProductExcelModal()">Cancelar</button>
+                <button type="button" class="btn btn-excel" id="btn-generate-product-excel" onclick="generateProductExcelReport()">📥 Gerar Excel</button>
             </div>
         </div>
     </div>
@@ -2089,9 +2166,6 @@
             if (hd) hd.value = today;
         }
 
-        // ============ ALTERAÇÃO DE QUALIDADE — PDF ============
-        // Escala base aumentada de 2 para 3, limite de canvas de 28000 para 45000
-        // e escala mínima de 0.4 para 0.5 para gerar PDFs com imagem mais nítida.
         function calculateOptimalScale(container) {
             try {
                 const height = container.scrollHeight || container.offsetHeight || 10000;
@@ -2105,7 +2179,6 @@
                 return 2;
             }
         }
-        // =======================================================
 
         function loadInspectorNamesFromCache() {
             try {
@@ -3442,15 +3515,9 @@
             }
         }
 
-        // ==============================================================
-        // NOVAS FUNÇÕES PARA O MODAL DE SELEÇÃO MÚLTIPLA DE PEÇAS
-        // ==============================================================
-        
         function populateProductCheckboxes() {
             const container = document.getElementById('product-checkboxes-container');
             if (!container) return;
-            
-            // Se já foi populado, não faz de novo para não perder a seleção
             if (container.children.length > 0) return;
 
             const datalist = document.getElementById('product-list');
@@ -3489,7 +3556,6 @@
         function toggleAllProducts(checked) {
             const labels = document.querySelectorAll('#product-checkboxes-container label');
             labels.forEach(label => {
-                // Só altera os que estão visíveis no momento (respeita o filtro de busca)
                 if (label.style.display !== 'none') {
                     const cb = label.querySelector('input[type="checkbox"]');
                     if (cb) cb.checked = checked;
@@ -3510,10 +3576,8 @@
             if (radio) radio.checked = true;
             toggleProductReportType();
             
-            // Popula a lista de checkboxes com os produtos do datalist
             populateProductCheckboxes();
             
-            // Limpa o campo de busca
             const searchInput = document.getElementById('product-search-input');
             if (searchInput) {
                 searchInput.value = '';
@@ -3547,7 +3611,6 @@
             const btn = document.getElementById('btn-generate-product-pdf');
             const original = btn ? btn.textContent : '';
 
-            // COLETA MÚLTIPLA DAS PEÇAS SELECIONADAS
             const selectedCheckboxes = document.querySelectorAll('.product-checkbox:checked');
             if (selectedCheckboxes.length === 0) {
                 alert('⚠️ Selecione pelo menos uma peça na lista antes de gerar o relatório.');
@@ -3557,7 +3620,6 @@
             const selectedProductsRaw = Array.from(selectedCheckboxes).map(cb => cb.value);
             const productFilters = selectedProductsRaw.map(p => normalizeProductKey(p));
             
-            // Cria um rótulo amigável para o PDF
             let displayLabel = '';
             if (selectedProductsRaw.length <= 3) {
                 displayLabel = selectedProductsRaw.join(', ');
@@ -3613,7 +3675,6 @@
 
                         const filteredProducts = {};
                         Object.keys(inspObj.products).forEach(prodKey => {
-                            // AQUI É A MUDANÇA PRINCIPAL: Verifica se o produto está na lista de selecionados
                             if (productFilters.includes(normalizeProductKey(prodKey))) {
                                 filteredProducts[prodKey] = inspObj.products[prodKey];
                                 productsMatchedSet.add(prodKey);
@@ -3655,7 +3716,6 @@
                 const pdfScale = calculateOptimalScale(tempDiv);
                 console.log(`[PDF POR PEÇA] Altura do conteúdo: ${tempDiv.scrollHeight}px | Escala: ${pdfScale}`);
 
-                // Cria um nome de arquivo seguro
                 const safeProduct = displayLabel.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
                 const safeLabel = label.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '_');
 
@@ -3679,6 +3739,958 @@
                 if (btn) { btn.disabled = false; btn.textContent = original; }
             }
         }
+
+        /* ============================================================
+           ============ FUNÇÕES EXCEL (NOVAS) =========================
+           ============================================================ */
+
+        function openExcelReportModal() {
+            const modal = document.getElementById('excel-report-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dailyEl = document.getElementById('excel-daily-date');
+            const monthlyEl = document.getElementById('excel-monthly-month');
+            if (dailyEl) dailyEl.value = todayStr;
+            if (monthlyEl) monthlyEl.value = todayStr.slice(0, 7);
+            const radio = document.querySelector('input[name="excel-report-type"][value="daily"]');
+            if (radio) radio.checked = true;
+            toggleExcelReportType();
+        }
+
+        function closeExcelReportModal() {
+            const modal = document.getElementById('excel-report-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function toggleExcelReportType() {
+            const checked = document.querySelector('input[name="excel-report-type"]:checked');
+            if (!checked) return;
+            const type = checked.value;
+            const dailyField = document.getElementById('excel-daily-field');
+            const monthlyField = document.getElementById('excel-monthly-field');
+            if (dailyField) dailyField.style.display = (type === 'daily') ? 'block' : 'none';
+            if (monthlyField) monthlyField.style.display = (type === 'monthly') ? 'block' : 'none';
+        }
+
+        async function generateExcelReport() {
+            const btn = document.getElementById('btn-generate-excel');
+            const original = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando...'; }
+            showLoading('Gerando Excel...');
+            try {
+                const type = document.querySelector('input[name="excel-report-type"]:checked').value;
+                let startDate, endDate, label, isMonthly = (type === 'monthly');
+
+                if (type === 'daily') {
+                    const date = document.getElementById('excel-daily-date').value;
+                    if (!date) { alert('Selecione uma data.'); return; }
+                    startDate = date;
+                    endDate = date;
+                    label = `Diário - ${date.split('-').reverse().join('/')}`;
+                } else {
+                    const monthValue = document.getElementById('excel-monthly-month').value;
+                    if (!monthValue) { alert('Selecione um mês.'); return; }
+                    const [year, month] = monthValue.split('-');
+                    startDate = `${monthValue}-01`;
+                    const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+                    endDate = `${monthValue}-${String(lastDay).padStart(2, '0')}`;
+                    label = `Mensal - ${monthValue.replace('-', '/')}`;
+                }
+
+                const snapshot = await db.collection(COLLECTION_NAME)
+                    .where(firebase.firestore.FieldPath.documentId(), '>=', startDate)
+                    .where(firebase.firestore.FieldPath.documentId(), '<=', endDate)
+                    .get();
+
+                if (snapshot.empty) {
+                    alert('Nenhum dado encontrado para o período selecionado.');
+                    return;
+                }
+
+                const reportData = [];
+                snapshot.forEach(doc => { reportData.push({ date: doc.id, data: doc.data() }); });
+                reportData.sort((a, b) => a.date.localeCompare(b.date));
+
+                await buildAndDownloadExcel(reportData, label, isMonthly);
+                closeExcelReportModal();
+            } catch (error) {
+                console.error('Erro ao gerar Excel:', error);
+                alert('❌ Erro ao gerar Excel.\n' + (error && error.message ? error.message : ''));
+            } finally {
+                hideLoading();
+                if (btn) { btn.disabled = false; btn.textContent = original; }
+            }
+        }
+
+        function populateProductExcelCheckboxes() {
+            const container = document.getElementById('product-excel-checkboxes-container');
+            if (!container) return;
+            if (container.children.length > 0) return;
+            const datalist = document.getElementById('product-list');
+            if (!datalist) return;
+            const options = Array.from(datalist.querySelectorAll('option')).map(opt => opt.value).sort();
+            options.forEach(optValue => {
+                const label = document.createElement('label');
+                label.className = 'product-checkbox-label';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = optValue;
+                cb.className = 'product-excel-checkbox';
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(optValue));
+                container.appendChild(label);
+            });
+        }
+
+        function filterProductExcelCheckboxes() {
+            const term = document.getElementById('product-excel-search-input').value.toUpperCase();
+            document.querySelectorAll('#product-excel-checkboxes-container label').forEach(label => {
+                const text = label.textContent.toUpperCase();
+                label.style.display = text.includes(term) ? 'flex' : 'none';
+            });
+        }
+
+        function toggleAllProductsExcel(checked) {
+            document.querySelectorAll('#product-excel-checkboxes-container label').forEach(label => {
+                if (label.style.display !== 'none') {
+                    const cb = label.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = checked;
+                }
+            });
+        }
+
+        function openProductExcelModal() {
+            const modal = document.getElementById('product-excel-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dailyEl = document.getElementById('product-excel-daily-date');
+            const monthlyEl = document.getElementById('product-excel-monthly-month');
+            if (dailyEl) dailyEl.value = todayStr;
+            if (monthlyEl) monthlyEl.value = todayStr.slice(0, 7);
+            const radio = document.querySelector('input[name="product-excel-type"][value="daily"]');
+            if (radio) radio.checked = true;
+            toggleProductExcelType();
+            populateProductExcelCheckboxes();
+            const searchInput = document.getElementById('product-excel-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                filterProductExcelCheckboxes();
+            }
+        }
+
+        function closeProductExcelModal() {
+            const modal = document.getElementById('product-excel-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function toggleProductExcelType() {
+            const checked = document.querySelector('input[name="product-excel-type"]:checked');
+            if (!checked) return;
+            const type = checked.value;
+            const dailyField = document.getElementById('product-excel-daily-field');
+            const monthlyField = document.getElementById('product-excel-monthly-field');
+            if (dailyField) dailyField.style.display = (type === 'daily') ? 'block' : 'none';
+            if (monthlyField) monthlyField.style.display = (type === 'monthly') ? 'block' : 'none';
+        }
+
+        async function generateProductExcelReport() {
+            const btn = document.getElementById('btn-generate-product-excel');
+            const original = btn ? btn.textContent : '';
+
+            const selectedCheckboxes = document.querySelectorAll('.product-excel-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert('⚠️ Selecione pelo menos uma peça na lista antes de gerar o Excel.');
+                return;
+            }
+
+            const selectedProductsRaw = Array.from(selectedCheckboxes).map(cb => cb.value);
+            const productFilters = selectedProductsRaw.map(p => normalizeProductKey(p));
+
+            let displayLabel = selectedProductsRaw.length <= 3
+                ? selectedProductsRaw.join(', ')
+                : `${selectedProductsRaw.length} Peças Selecionadas`;
+
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando...'; }
+            showLoading('Gerando Excel...');
+
+            try {
+                const type = document.querySelector('input[name="product-excel-type"]:checked').value;
+                let startDate, endDate, label, isMonthly = (type === 'monthly');
+
+                if (type === 'daily') {
+                    const date = document.getElementById('product-excel-daily-date').value;
+                    if (!date) { alert('Selecione uma data.'); return; }
+                    startDate = date;
+                    endDate = date;
+                    label = `Peças (${displayLabel}) - Diário - ${date.split('-').reverse().join('/')}`;
+                } else {
+                    const monthValue = document.getElementById('product-excel-monthly-month').value;
+                    if (!monthValue) { alert('Selecione um mês.'); return; }
+                    const [year, month] = monthValue.split('-');
+                    startDate = `${monthValue}-01`;
+                    const lastDay = new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate();
+                    endDate = `${monthValue}-${String(lastDay).padStart(2, '0')}`;
+                    label = `Peças (${displayLabel}) - Mensal - ${monthValue.replace('-', '/')}`;
+                }
+
+                const snapshot = await db.collection(COLLECTION_NAME)
+                    .where(firebase.firestore.FieldPath.documentId(), '>=', startDate)
+                    .where(firebase.firestore.FieldPath.documentId(), '<=', endDate)
+                    .get();
+
+                if (snapshot.empty) {
+                    alert('Nenhum dado encontrado para o período selecionado.');
+                    return;
+                }
+
+                const reportData = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!data || !data.inspectors) return;
+                    const filteredInspectors = {};
+                    Object.keys(data.inspectors).forEach(inspName => {
+                        const inspObj = data.inspectors[inspName];
+                        if (!inspObj || !inspObj.products) return;
+                        const filteredProducts = {};
+                        Object.keys(inspObj.products).forEach(prodKey => {
+                            if (productFilters.includes(normalizeProductKey(prodKey))) {
+                                filteredProducts[prodKey] = inspObj.products[prodKey];
+                            }
+                        });
+                        if (Object.keys(filteredProducts).length > 0) {
+                            filteredInspectors[inspName] = { products: filteredProducts };
+                        }
+                    });
+                    if (Object.keys(filteredInspectors).length > 0) {
+                        reportData.push({ date: doc.id, data: { inspectors: filteredInspectors } });
+                    }
+                });
+
+                if (reportData.length === 0) {
+                    alert(`⚠️ Nenhum dado encontrado para as peças selecionadas no período.`);
+                    return;
+                }
+
+                reportData.sort((a, b) => a.date.localeCompare(b.date));
+                await buildAndDownloadExcel(reportData, label, isMonthly);
+                closeProductExcelModal();
+            } catch (error) {
+                console.error('Erro ao gerar Excel por peça:', error);
+                alert('❌ Erro ao gerar Excel.\n' + (error && error.message ? error.message : ''));
+            } finally {
+                hideLoading();
+                if (btn) { btn.disabled = false; btn.textContent = original; }
+            }
+        }
+
+        async function buildAndDownloadExcel(reportData, label, isMonthly) {
+            if (typeof ExcelJS === 'undefined') {
+                alert('❌ Biblioteca ExcelJS não carregada. Verifique sua conexão com a internet.');
+                return;
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'Dona Rita Embalagens';
+            workbook.created = new Date();
+
+            const C = {
+                primary: 'FF241245',
+                secondary: 'FF3E2970',
+                accent: 'FFF47B20',
+                lightPurple: 'FFF0EDF7',
+                lightGray: 'FFF4F6F9',
+                successBg: 'FFD4EDDA',
+                successTx: 'FF155724',
+                dangerBg: 'FFF8D7DA',
+                dangerTx: 'FF721C24',
+                warningBg: 'FFFFF3CD',
+                warningTx: 'FF856404',
+                infoTx: 'FF0C5460',
+                orangeTx: 'FFD35400',
+                border: 'FFD1D1D1',
+                white: 'FFFFFFFF',
+                text: 'FF241245',
+                muted: 'FF666666'
+            };
+
+            const fontTitle = { name: 'Calibri', size: 20, bold: true, color: { argb: C.white } };
+            const fontSubtitle = { name: 'Calibri', size: 11, color: { argb: 'FFC9B5FF' } };
+            const fontSection = { name: 'Calibri', size: 13, bold: true, color: { argb: C.primary } };
+            const fontHeader = { name: 'Calibri', size: 11, bold: true, color: { argb: C.white } };
+            const fontNormal = { name: 'Calibri', size: 11, color: { argb: C.text } };
+            const fontBold = { name: 'Calibri', size: 11, bold: true, color: { argb: C.text } };
+            const fontSmallMuted = { name: 'Calibri', size: 10, color: { argb: C.muted } };
+
+            const thinBorder = {
+                top: { style: 'thin', color: { argb: C.border } },
+                left: { style: 'thin', color: { argb: C.border } },
+                bottom: { style: 'thin', color: { argb: C.border } },
+                right: { style: 'thin', color: { argb: C.border } }
+            };
+
+            const fillSolid = (argb) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: argb } });
+            const centerAlign = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            const leftAlign = { horizontal: 'left', vertical: 'middle', wrapText: true };
+
+            // ============ COLETA DE DADOS ============
+            const allMachines = [];
+            let totalMeasurements = 0;
+            let approvedCount = 0, rejectedCount = 0;
+            const problems = [];
+            const uniqueProductsSet = new Set();
+            const dailyBreakdown = {};
+            const productSummary = {};
+
+            reportData.forEach(day => {
+                const date = day.date;
+                const data = day.data;
+                if (!data || !data.inspectors) return;
+                if (isMonthly && !dailyBreakdown[date]) {
+                    dailyBreakdown[date] = { machines: 0, measurements: 0, values: [], approved: 0, rejected: 0, products: new Set() };
+                }
+                Object.keys(data.inspectors).forEach(inspName => {
+                    const inspObj = data.inspectors[inspName];
+                    if (!inspObj || !inspObj.products) return;
+                    Object.keys(inspObj.products).forEach(prodKey => {
+                        const arr = inspObj.products[prodKey];
+                        if (!Array.isArray(arr)) return;
+                        arr.forEach(m => {
+                            uniqueProductsSet.add(prodKey);
+                            const status = m.status || 'APROVADO';
+                            if (status === 'APROVADO') approvedCount++;
+                            else rejectedCount++;
+
+                            const rows = m.rows || [];
+                            const machineValues = [];
+                            rows.forEach(r => {
+                                ['m1', 'm3', 'm4'].forEach(k => {
+                                    const v = r[k];
+                                    if (v !== '' && v !== null && v !== undefined) {
+                                        const num = parseFloat(String(v).replace(',', '.'));
+                                        if (!isNaN(num)) {
+                                            machineValues.push(num);
+                                            totalMeasurements++;
+                                        }
+                                    }
+                                });
+                            });
+
+                            let realAvg = m.totalAverage;
+                            if (!realAvg || isNaN(realAvg)) {
+                                realAvg = machineValues.length > 0 ? machineValues.reduce((a, b) => a + b, 0) / machineValues.length : 0;
+                            }
+
+                            const machineObj = {
+                                date, machine: m.machine || '?', inspector: inspName, product: prodKey,
+                                turn: m.turn || '', status, totalAvg: realAvg,
+                                cycle: m.cycle || '', collaborator: m.collaborator || '',
+                                cavity: m.cavity || 10, rows,
+                                tolMin: m.tolMin || '23,51', tolMid: m.tolMid || '24,51', tolMax: m.tolMax || '25,11',
+                                productType: m.productType || 'TAMPA',
+                                measurementCount: machineValues.length,
+                                machineValues: machineValues,
+                                problema: m.problema || '',
+                                motivoAusencia: m.motivoAusencia || ''
+                            };
+                            allMachines.push(machineObj);
+
+                            if (m.problema) {
+                                problems.push({ date, machine: machineObj.machine, product: prodKey, inspector: inspName, problema: m.problema });
+                            }
+
+                            if (isMonthly) {
+                                dailyBreakdown[date].machines++;
+                                dailyBreakdown[date].measurements += machineValues.length;
+                                for (let i = 0; i < machineValues.length; i++) dailyBreakdown[date].values.push(machineValues[i]);
+                                if (status === 'APROVADO') dailyBreakdown[date].approved++;
+                                else dailyBreakdown[date].rejected++;
+                                dailyBreakdown[date].products.add(prodKey);
+                            }
+
+                            // Resumo por produto (mês)
+                            if (!productSummary[prodKey]) {
+                                productSummary[prodKey] = { values: [], machines: 0, approved: 0, rejected: 0, tolMin: null, tolMid: null, tolMax: null };
+                            }
+                            productSummary[prodKey].machines++;
+                            if (status === 'APROVADO') productSummary[prodKey].approved++;
+                            else productSummary[prodKey].rejected++;
+                            for (let i = 0; i < machineValues.length; i++) productSummary[prodKey].values.push(machineValues[i]);
+                            if (productSummary[prodKey].tolMin === null && m.tolMin) {
+                                const n = parseFloat(String(m.tolMin).replace(',', '.'));
+                                if (!isNaN(n)) productSummary[prodKey].tolMin = n;
+                            }
+                            if (productSummary[prodKey].tolMid === null && m.tolMid) {
+                                const n = parseFloat(String(m.tolMid).replace(',', '.'));
+                                if (!isNaN(n)) productSummary[prodKey].tolMid = n;
+                            }
+                            if (productSummary[prodKey].tolMax === null && m.tolMax) {
+                                const n = parseFloat(String(m.tolMax).replace(',', '.'));
+                                if (!isNaN(n)) productSummary[prodKey].tolMax = n;
+                            }
+                        });
+                    });
+                });
+            });
+
+            const allValues = [];
+            allMachines.forEach(m => { for (let i = 0; i < m.machineValues.length; i++) allValues.push(m.machineValues[i]); });
+            const overallAvg = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
+            const uniqueProducts = [...uniqueProductsSet].sort();
+
+            // ============ ABA 1: RESUMO ============
+            const ws1 = workbook.addWorksheet('Resumo', {
+                views: [{ showGridLines: false }]
+            });
+            ws1.columns = [
+                { width: 16 }, { width: 18 }, { width: 14 }, { width: 14 },
+                { width: 12 }, { width: 14 }, { width: 10 }, { width: 16 }
+            ];
+
+            // Cabeçalho
+            ws1.mergeCells('A1:H1');
+            ws1.getCell('A1').value = 'DONA RITA EMBALAGENS';
+            ws1.getCell('A1').font = fontTitle;
+            ws1.getCell('A1').fill = fillSolid(C.primary);
+            ws1.getCell('A1').alignment = centerAlign;
+            ws1.getRow(1).height = 36;
+
+            ws1.mergeCells('A2:H2');
+            ws1.getCell('A2').value = 'Sistema de Controle de Qualidade';
+            ws1.getCell('A2').font = fontSubtitle;
+            ws1.getCell('A2').fill = fillSolid(C.primary);
+            ws1.getCell('A2').alignment = centerAlign;
+            ws1.getRow(2).height = 22;
+
+            // Título
+            ws1.mergeCells('A3:H3');
+            ws1.getCell('A3').value = `Relatório ${label}`;
+            ws1.getCell('A3').font = { name: 'Calibri', size: 14, bold: true, color: { argb: C.primary } };
+            ws1.getCell('A3').alignment = centerAlign;
+            ws1.getRow(3).height = 28;
+
+            ws1.mergeCells('A4:H4');
+            ws1.getCell('A4').value = `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
+            ws1.getCell('A4').font = fontSmallMuted;
+            ws1.getCell('A4').alignment = centerAlign;
+            ws1.getRow(4).height = 18;
+
+            ws1.getRow(5).height = 8;
+
+            // Cards de resumo (layout 4 + 2)
+            const stats = [
+                { label: 'MÁQUINAS', value: allMachines.length, color: C.primary },
+                { label: 'APROVADAS', value: approvedCount, color: C.successTx },
+                { label: 'REPROVADAS', value: rejectedCount, color: C.dangerTx },
+                { label: 'MEDIÇÕES', value: totalMeasurements, color: C.infoTx },
+                { label: 'MÉDIA GERAL', value: overallAvg.toFixed(3).replace('.', ','), color: C.warningTx },
+                { label: 'PRODUTOS ÚNICOS', value: uniqueProducts.length, color: C.orangeTx }
+            ];
+
+            const cardLayout = [
+                { rowStart: 6, rowEnd: 7, colStart: 'A', colEnd: 'B' },
+                { rowStart: 6, rowEnd: 7, colStart: 'C', colEnd: 'D' },
+                { rowStart: 6, rowEnd: 7, colStart: 'E', colEnd: 'F' },
+                { rowStart: 6, rowEnd: 7, colStart: 'G', colEnd: 'H' },
+                { rowStart: 8, rowEnd: 9, colStart: 'A', colEnd: 'B' },
+                { rowStart: 8, rowEnd: 9, colStart: 'C', colEnd: 'D' }
+            ];
+
+            cardLayout.forEach((lay, idx) => {
+                const stat = stats[idx];
+                const labelRange = `${lay.colStart}${lay.rowStart}:${lay.colEnd}${lay.rowStart}`;
+                const valueRange = `${lay.colStart}${lay.rowEnd}:${lay.colEnd}${lay.rowEnd}`;
+                ws1.mergeCells(labelRange);
+                ws1.mergeCells(valueRange);
+
+                const labelCell = ws1.getCell(`${lay.colStart}${lay.rowStart}`);
+                labelCell.value = stat.label;
+                labelCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: C.muted } };
+                labelCell.alignment = centerAlign;
+                labelCell.fill = fillSolid(C.lightPurple);
+                labelCell.border = thinBorder;
+
+                const valueCell = ws1.getCell(`${lay.colStart}${lay.rowEnd}`);
+                valueCell.value = stat.value;
+                valueCell.font = { name: 'Calibri', size: 18, bold: true, color: { argb: stat.color } };
+                valueCell.alignment = centerAlign;
+                valueCell.fill = fillSolid(C.lightPurple);
+                valueCell.border = thinBorder;
+            });
+
+            ws1.getRow(6).height = 20;
+            ws1.getRow(7).height = 34;
+            ws1.getRow(8).height = 20;
+            ws1.getRow(9).height = 34;
+
+            let currentRow = 11;
+
+            // Produtos encontrados
+            if (uniqueProducts.length > 0) {
+                ws1.mergeCells(`A${currentRow}:H${currentRow}`);
+                const pTitle = ws1.getCell(`A${currentRow}`);
+                pTitle.value = 'PRODUTOS ENCONTRADOS';
+                pTitle.font = fontSection;
+                pTitle.alignment = leftAlign;
+                pTitle.fill = fillSolid(C.lightGray);
+                ws1.getRow(currentRow).height = 22;
+                currentRow++;
+
+                const perRow = 4;
+                for (let i = 0; i < uniqueProducts.length; i += perRow) {
+                    const chunk = uniqueProducts.slice(i, i + perRow);
+                    chunk.forEach((prod, idx) => {
+                        const col = String.fromCharCode(65 + idx * 2);
+                        const endCol = String.fromCharCode(65 + idx * 2 + 1);
+                        ws1.mergeCells(`${col}${currentRow}:${endCol}${currentRow}`);
+                        const c = ws1.getCell(`${col}${currentRow}`);
+                        c.value = prod;
+                        c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.secondary } };
+                        c.alignment = centerAlign;
+                        c.fill = fillSolid(C.lightPurple);
+                        c.border = thinBorder;
+                    });
+                    ws1.getRow(currentRow).height = 22;
+                    currentRow++;
+                }
+                currentRow++;
+            }
+
+            // Resumo por produto
+            const productKeysForSummary = Object.keys(productSummary).sort();
+            if (productKeysForSummary.length > 0) {
+                ws1.mergeCells(`A${currentRow}:H${currentRow}`);
+                const ps = ws1.getCell(`A${currentRow}`);
+                ps.value = 'RESUMO POR PRODUTO';
+                ps.font = fontSection;
+                ps.alignment = leftAlign;
+                ps.fill = fillSolid(C.lightGray);
+                ws1.getRow(currentRow).height = 22;
+                currentRow++;
+
+                const prodHeaders = ['Produto', 'Máquinas', 'Mín Medido', 'Média', 'Máx Medido', 'Ref Mín', 'Ref Ideal', 'Ref Máx'];
+                const pHeaderRow = ws1.getRow(currentRow);
+                pHeaderRow.values = prodHeaders;
+                pHeaderRow.eachCell(cell => {
+                    cell.font = fontHeader;
+                    cell.fill = fillSolid(C.primary);
+                    cell.alignment = centerAlign;
+                    cell.border = thinBorder;
+                });
+                pHeaderRow.height = 24;
+                currentRow++;
+
+                productKeysForSummary.forEach(prodKey => {
+                    const s = productSummary[prodKey];
+                    const vals = s.values;
+                    const pMin = vals.length > 0 ? Math.min(...vals) : null;
+                    const pMax = vals.length > 0 ? Math.max(...vals) : null;
+                    const pAvg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+                    const fmt2 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(2).replace('.', ',');
+                    const fmt3 = (n) => (n === null || n === undefined || isNaN(n)) ? '—' : n.toFixed(3).replace('.', ',');
+
+                    const row = ws1.getRow(currentRow);
+                    row.values = [
+                        prodKey, s.machines,
+                        fmt2(pMin), fmt3(pAvg), fmt2(pMax),
+                        fmt2(s.tolMin), fmt2(s.tolMid), fmt2(s.tolMax)
+                    ];
+                    row.eachCell((cell, colNumber) => {
+                        cell.font = fontNormal;
+                        cell.alignment = centerAlign;
+                        cell.border = thinBorder;
+                        if (colNumber === 1) {
+                            cell.font = fontBold;
+                            cell.alignment = leftAlign;
+                        }
+                        if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
+                            cell.fill = fillSolid(C.lightPurple);
+                        }
+                        if (colNumber >= 6) {
+                            cell.fill = fillSolid(C.lightGray);
+                            cell.font = { name: 'Calibri', size: 10, color: { argb: C.muted } };
+                        }
+                    });
+                    ws1.getRow(currentRow).height = 20;
+                    currentRow++;
+                });
+                currentRow++;
+            }
+
+            // Tabela de máquinas
+            ws1.mergeCells(`A${currentRow}:H${currentRow}`);
+            const mTitle = ws1.getCell(`A${currentRow}`);
+            mTitle.value = 'RESUMO DE MÁQUINAS';
+            mTitle.font = fontSection;
+            mTitle.alignment = leftAlign;
+            mTitle.fill = fillSolid(C.lightGray);
+            ws1.getRow(currentRow).height = 22;
+            currentRow++;
+
+            const headers = isMonthly
+                ? ['Data', 'Máquina', 'Inspetor', 'Produto', 'Turno', 'Status', 'Medições', 'Média Geral']
+                : ['Máquina', 'Inspetor', 'Produto', 'Tipo', 'Turno', 'Status', 'Medições', 'Média Geral'];
+
+            const headerRow = ws1.getRow(currentRow);
+            headerRow.values = headers;
+            headerRow.eachCell(cell => {
+                cell.font = fontHeader;
+                cell.fill = fillSolid(C.primary);
+                cell.alignment = centerAlign;
+                cell.border = thinBorder;
+            });
+            headerRow.height = 24;
+            currentRow++;
+
+            allMachines.forEach(m => {
+                const rowData = isMonthly
+                    ? [m.date.split('-').reverse().join('/'), m.machine, m.inspector, m.product, m.turn, m.status, m.measurementCount, m.totalAvg ? m.totalAvg.toFixed(3).replace('.', ',') : '—']
+                    : [m.machine, m.inspector, m.product, m.productType, m.turn, m.status, m.measurementCount, m.totalAvg ? m.totalAvg.toFixed(3).replace('.', ',') : '—'];
+
+                const row = ws1.getRow(currentRow);
+                row.values = rowData;
+                row.eachCell((cell, colNumber) => {
+                    cell.font = fontNormal;
+                    cell.alignment = centerAlign;
+                    cell.border = thinBorder;
+
+                    if (colNumber === 6) {
+                        if (cell.value === 'APROVADO') {
+                            cell.fill = fillSolid(C.successBg);
+                            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.successTx } };
+                        } else {
+                            cell.fill = fillSolid(C.dangerBg);
+                            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.dangerTx } };
+                        }
+                    }
+                    if (colNumber === 1 && !isMonthly) {
+                        cell.font = fontBold;
+                    }
+                });
+                ws1.getRow(currentRow).height = 18;
+                currentRow++;
+            });
+            currentRow++;
+
+            // Resumo diário (mensal)
+            if (isMonthly) {
+                ws1.mergeCells(`A${currentRow}:H${currentRow}`);
+                const dTitle = ws1.getCell(`A${currentRow}`);
+                dTitle.value = 'RESUMO DIÁRIO';
+                dTitle.font = fontSection;
+                dTitle.alignment = leftAlign;
+                dTitle.fill = fillSolid(C.lightGray);
+                ws1.getRow(currentRow).height = 22;
+                currentRow++;
+
+                const dHeaders = ['Data', 'Máquinas', 'Medições', 'Média Geral', 'Aprovadas', 'Reprovadas', 'Produtos', ''];
+                const dHeaderRow = ws1.getRow(currentRow);
+                dHeaderRow.values = dHeaders;
+                dHeaderRow.eachCell((cell, colNumber) => {
+                    if (colNumber <= 7) {
+                        cell.font = fontHeader;
+                        cell.fill = fillSolid(C.primary);
+                        cell.alignment = centerAlign;
+                        cell.border = thinBorder;
+                    }
+                });
+                dHeaderRow.height = 24;
+                currentRow++;
+
+                Object.keys(dailyBreakdown).sort().forEach(date => {
+                    const s = dailyBreakdown[date];
+                    const dayAvg = s.values.length > 0 ? s.values.reduce((a, b) => a + b, 0) / s.values.length : 0;
+                    const productsStr = [...s.products].join(', ');
+                    const row = ws1.getRow(currentRow);
+                    row.values = [
+                        date.split('-').reverse().join('/'),
+                        s.machines,
+                        s.measurements,
+                        dayAvg ? dayAvg.toFixed(3).replace('.', ',') : '—',
+                        s.approved,
+                        s.rejected,
+                        productsStr
+                    ];
+                    row.eachCell((cell, colNumber) => {
+                        if (colNumber <= 7) {
+                            cell.font = fontNormal;
+                            cell.alignment = centerAlign;
+                            cell.border = thinBorder;
+                            if (colNumber === 5) cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.successTx } };
+                            if (colNumber === 6) cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.dangerTx } };
+                        }
+                    });
+                    ws1.getRow(currentRow).height = 18;
+                    currentRow++;
+                });
+                currentRow++;
+            }
+
+            // Problemas
+            if (problems.length > 0) {
+                ws1.mergeCells(`A${currentRow}:H${currentRow}`);
+                const prTitle = ws1.getCell(`A${currentRow}`);
+                prTitle.value = 'PROBLEMAS REGISTRADOS';
+                prTitle.font = { name: 'Calibri', size: 13, bold: true, color: { argb: C.dangerTx } };
+                prTitle.alignment = leftAlign;
+                prTitle.fill = fillSolid(C.dangerBg);
+                ws1.getRow(currentRow).height = 22;
+                currentRow++;
+
+                const phHeaders = ['Data', 'Máquina', 'Produto', 'Inspetor', 'Problema'];
+                const phRow = ws1.getRow(currentRow);
+                phRow.values = phHeaders;
+                for (let c = 1; c <= 4; c++) {
+                    const cell = phRow.getCell(c);
+                    cell.font = fontHeader;
+                    cell.fill = fillSolid(C.dangerTx);
+                    cell.alignment = centerAlign;
+                    cell.border = thinBorder;
+                }
+                ws1.mergeCells(`E${currentRow}:H${currentRow}`);
+                const mergedHeader = ws1.getCell(`E${currentRow}`);
+                mergedHeader.font = fontHeader;
+                mergedHeader.fill = fillSolid(C.dangerTx);
+                mergedHeader.alignment = centerAlign;
+                for (let c = 5; c <= 8; c++) {
+                    const cell = phRow.getCell(c);
+                    cell.fill = fillSolid(C.dangerTx);
+                    cell.border = thinBorder;
+                }
+                phRow.height = 22;
+                currentRow++;
+
+                problems.forEach(p => {
+                    const row = ws1.getRow(currentRow);
+                    row.getCell(1).value = p.date.split('-').reverse().join('/');
+                    row.getCell(2).value = p.machine;
+                    row.getCell(3).value = p.product;
+                    row.getCell(4).value = p.inspector;
+                    row.getCell(5).value = p.problema;
+                    ws1.mergeCells(`E${currentRow}:H${currentRow}`);
+
+                    for (let c = 1; c <= 4; c++) {
+                        const cell = row.getCell(c);
+                        cell.font = { name: 'Calibri', size: 10, color: { argb: C.dangerTx } };
+                        cell.alignment = centerAlign;
+                        cell.border = thinBorder;
+                    }
+                    const probCell = row.getCell(5);
+                    probCell.font = { name: 'Calibri', size: 10, color: { argb: C.dangerTx } };
+                    probCell.alignment = leftAlign;
+                    for (let c = 5; c <= 8; c++) {
+                        const cell = row.getCell(c);
+                        cell.fill = fillSolid(C.dangerBg);
+                        cell.border = thinBorder;
+                    }
+                    ws1.getRow(currentRow).height = 28;
+                    currentRow++;
+                });
+            }
+
+            // ============ ABA 2: MEDIÇÕES DETALHADAS ============
+            const ws2 = workbook.addWorksheet('Medições Detalhadas', {
+                views: [{ showGridLines: false }]
+            });
+            ws2.columns = [
+                { width: 14 }, { width: 14 }, { width: 14 },
+                { width: 14 }, { width: 16 }, { width: 16 }
+            ];
+
+            ws2.mergeCells('A1:F1');
+            ws2.getCell('A1').value = 'DONA RITA EMBALAGENS';
+            ws2.getCell('A1').font = { name: 'Calibri', size: 16, bold: true, color: { argb: C.white } };
+            ws2.getCell('A1').fill = fillSolid(C.primary);
+            ws2.getCell('A1').alignment = centerAlign;
+            ws2.getRow(1).height = 30;
+
+            ws2.mergeCells('A2:F2');
+            ws2.getCell('A2').value = 'Detalhamento das Medições — ' + label;
+            ws2.getCell('A2').font = { name: 'Calibri', size: 12, bold: true, color: { argb: C.primary } };
+            ws2.getCell('A2').fill = fillSolid(C.lightPurple);
+            ws2.getCell('A2').alignment = centerAlign;
+            ws2.getRow(2).height = 24;
+
+            let r2 = 4;
+
+            allMachines.forEach(m => {
+                ws2.mergeCells(`A${r2}:F${r2}`);
+                const mh = ws2.getCell(`A${r2}`);
+                const machineInfo = isMonthly
+                    ? `${m.date.split('-').reverse().join('/')}  |  Máquina: ${m.machine}  |  Produto: ${m.product}  |  Inspetor: ${m.inspector}  |  Turno: ${m.turn || '-'}  |  Ciclo: ${m.cycle || '-'}`
+                    : `Máquina: ${m.machine}  |  Produto: ${m.product}  |  Inspetor: ${m.inspector}  |  Turno: ${m.turn || '-'}  |  Ciclo: ${m.cycle || '-'}`;
+                mh.value = machineInfo;
+                mh.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.white } };
+                mh.fill = fillSolid(C.secondary);
+                mh.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                ws2.getRow(r2).height = 24;
+                r2++;
+
+                const colHeaders = ['Cavidade', 'M1', 'M3', 'M4', 'Ref. Mín', 'Ref. Máx'];
+                const chr = ws2.getRow(r2);
+                chr.values = colHeaders;
+                chr.eachCell(cell => {
+                    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.primary } };
+                    cell.fill = fillSolid(C.lightPurple);
+                    cell.alignment = centerAlign;
+                    cell.border = thinBorder;
+                });
+                ws2.getRow(r2).height = 22;
+                r2++;
+
+                const minTol = parseFloat(String(m.tolMin).replace(',', '.'));
+                const maxTol = parseFloat(String(m.tolMax).replace(',', '.'));
+                const cavity = Math.min(m.cavity || 10, 10);
+
+                for (let i = 0; i < cavity; i++) {
+                    const r = m.rows[i] || {};
+                    const valM1 = r.m1 !== '' && r.m1 !== undefined ? parseFloat(r.m1) : '';
+                    const valM3 = r.m3 !== '' && r.m3 !== undefined ? parseFloat(r.m3) : '';
+                    const valM4 = r.m4 !== '' && r.m4 !== undefined ? parseFloat(r.m4) : '';
+
+                    const row = ws2.getRow(r2);
+                    row.values = [
+                        i + 1,
+                        valM1 !== '' && !isNaN(valM1) ? valM1.toFixed(3).replace('.', ',') : '—',
+                        valM3 !== '' && !isNaN(valM3) ? valM3.toFixed(3).replace('.', ',') : '—',
+                        valM4 !== '' && !isNaN(valM4) ? valM4.toFixed(3).replace('.', ',') : '—',
+                        i === 0 ? (m.tolMin || '—') : '',
+                        i === 0 ? (m.tolMax || '—') : ''
+                    ];
+
+                    row.eachCell((cell, colNumber) => {
+                        cell.alignment = centerAlign;
+                        cell.border = thinBorder;
+                        cell.font = fontNormal;
+                        if (colNumber === 1) cell.font = fontBold;
+
+                        if (colNumber >= 2 && colNumber <= 4) {
+                            const val = colNumber === 2 ? valM1 : (colNumber === 3 ? valM3 : valM4);
+                            if (val !== '' && !isNaN(val)) {
+                                if (val < minTol) {
+                                    cell.fill = fillSolid(C.dangerBg);
+                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.dangerTx }, bold: true };
+                                } else if (val === minTol) {
+                                    cell.fill = fillSolid(C.warningBg);
+                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.warningTx }, bold: true };
+                                } else if (val <= maxTol) {
+                                    cell.fill = fillSolid(C.successBg);
+                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.successTx }, bold: true };
+                                } else {
+                                    cell.fill = fillSolid(C.dangerBg);
+                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.dangerTx }, bold: true };
+                                }
+                            }
+                        }
+                        if (colNumber >= 5) {
+                            cell.fill = fillSolid(C.lightGray);
+                            cell.font = { name: 'Calibri', size: 10, color: { argb: C.muted } };
+                        }
+                    });
+                    ws2.getRow(r2).height = 18;
+                    r2++;
+                }
+
+                // Linhas de estatística
+                const m1v = [], m3v = [], m4v = [];
+                for (let i = 0; i < cavity; i++) {
+                    const r = m.rows[i] || {};
+                    const v1 = parseFloat(String(r.m1).replace(',', '.'));
+                    const v3 = parseFloat(String(r.m3).replace(',', '.'));
+                    const v4 = parseFloat(String(r.m4).replace(',', '.'));
+                    if (!isNaN(v1) && r.m1 !== '' && r.m1 !== undefined) m1v.push(v1);
+                    if (!isNaN(v3) && r.m3 !== '' && r.m3 !== undefined) m3v.push(v3);
+                    if (!isNaN(v4) && r.m4 !== '' && r.m4 !== undefined) m4v.push(v4);
+                }
+                const statsArr = [
+                    { label: 'MÍNIMO', get: arr => arr.length ? Math.min(...arr) : null, arrs: [m1v, m3v, m4v] },
+                    { label: 'MÉDIA', get: arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null, arrs: [m1v, m3v, m4v] },
+                    { label: 'MÁXIMO', get: arr => arr.length ? Math.max(...arr) : null, arrs: [m1v, m3v, m4v] }
+                ];
+                statsArr.forEach(st => {
+                    const row = ws2.getRow(r2);
+                    row.values = [
+                        st.label,
+                        st.get(st.arrs[0]) !== null ? st.get(st.arrs[0]).toFixed(3).replace('.', ',') : '—',
+                        st.get(st.arrs[1]) !== null ? st.get(st.arrs[1]).toFixed(3).replace('.', ',') : '—',
+                        st.get(st.arrs[2]) !== null ? st.get(st.arrs[2]).toFixed(3).replace('.', ',') : '—',
+                        '',
+                        ''
+                    ];
+                    row.eachCell(cell => {
+                        cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.secondary } };
+                        cell.fill = fillSolid(C.lightPurple);
+                        cell.alignment = centerAlign;
+                        cell.border = thinBorder;
+                    });
+                    ws2.getRow(r2).height = 20;
+                    r2++;
+                });
+
+                r2 += 2;
+            });
+
+            // ============ ABA 3: PROBLEMAS (se houver) ============
+            if (problems.length > 0) {
+                const ws3 = workbook.addWorksheet('Problemas', {
+                    views: [{ showGridLines: false }]
+                });
+                ws3.columns = [
+                    { width: 14 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 60 }
+                ];
+
+                ws3.mergeCells('A1:E1');
+                ws3.getCell('A1').value = 'PROBLEMAS REGISTRADOS';
+                ws3.getCell('A1').font = { name: 'Calibri', size: 16, bold: true, color: { argb: C.white } };
+                ws3.getCell('A1').fill = fillSolid(C.dangerTx);
+                ws3.getCell('A1').alignment = centerAlign;
+                ws3.getRow(1).height = 28;
+
+                const pHeaders = ['Data', 'Máquina', 'Produto', 'Inspetor', 'Problema'];
+                const pHeaderRow = ws3.getRow(2);
+                pHeaderRow.values = pHeaders;
+                pHeaderRow.eachCell(cell => {
+                    cell.font = fontHeader;
+                    cell.fill = fillSolid(C.dangerTx);
+                    cell.alignment = centerAlign;
+                    cell.border = thinBorder;
+                });
+                pHeaderRow.height = 22;
+
+                problems.forEach((p, idx) => {
+                    const row = ws3.getRow(3 + idx);
+                    row.values = [
+                        p.date.split('-').reverse().join('/'),
+                        p.machine, p.product, p.inspector, p.problema
+                    ];
+                    row.eachCell((cell, colNumber) => {
+                        cell.font = { name: 'Calibri', size: 11, color: { argb: C.dangerTx } };
+                        cell.alignment = colNumber === 5 ? leftAlign : centerAlign;
+                        cell.border = thinBorder;
+                        if (idx % 2 === 1) cell.fill = fillSolid('FFFFF8F8');
+                    });
+                    ws3.getRow(3 + idx).height = 30;
+                });
+            }
+
+            // ============ DOWNLOAD ============
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const safeLabel = label.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '_');
+            a.href = url;
+            a.download = `Relatorio_${safeLabel}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+
+        /* ============================================================
+           ============ FIM DAS FUNÇÕES EXCEL ==========================
+           ============================================================ */
 
         function buildReportHTML(reportData, label, isMonthly = false, includeCavityDetails = false) {
             return isMonthly
@@ -4002,9 +5014,6 @@
                                 });
                             });
 
-                            // ============================================================
-                            // RESUMO POR DIA E PRODUTO — é o que faz aparecer as datas
-                            // ============================================================
                             if (!productDaySummary[date]) productDaySummary[date] = {};
                             if (!productDaySummary[date][prodKey]) {
                                 productDaySummary[date][prodKey] = { values: [], machines: 0, tolMin: null, tolMid: null, tolMax: null };
@@ -4117,9 +5126,6 @@
                 html += `</div>`;
             }
 
-            /* ============================================================
-               SEÇÃO 1: MÉDIA POR PRODUTO (agregado do mês)
-               ============================================================ */
             html += `<div class="avoid-break" style="margin-bottom:14px;">`;
             html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Produto — Referência (linha 1) e Medidos (linha 2)</h3>`;
             html += `<div style="background:#f8f7fc; padding:6px 10px; border-radius:6px; border:1px dashed #d5cfe8; font-size:9px; color:#555; margin-bottom:10px;">
@@ -4159,9 +5165,6 @@
             });
             html += `</div>`;
 
-            /* ============================================================
-               SEÇÃO 2: MÉDIA POR DIA E PRODUTO — MOSTRA A DATA DE CADA DIA
-               ============================================================ */
             html += `<div class="avoid-break" style="margin-bottom:14px;">`;
             html += `<h3 style="color:#241245; margin: 10px 0 6px 0; font-size: 13px;">📊 Média por Dia e Produto — Referência (linha 1) e Medidos (linha 2)</h3>`;
             html += `<div style="background:#f8f7fc; padding:6px 10px; border-radius:6px; border:1px dashed #d5cfe8; font-size:9px; color:#555; margin-bottom:10px;">
@@ -4849,6 +5852,16 @@
                 const productPdfModal = document.getElementById('product-pdf-modal');
                 if (productPdfModal && productPdfModal.style.display === 'flex') {
                     closeProductPdfModal();
+                    return;
+                }
+                const excelModal = document.getElementById('excel-report-modal');
+                if (excelModal && excelModal.style.display === 'flex') {
+                    closeExcelReportModal();
+                    return;
+                }
+                const productExcelModal = document.getElementById('product-excel-modal');
+                if (productExcelModal && productExcelModal.style.display === 'flex') {
+                    closeProductExcelModal();
                 }
             }
             if (e.key === 'Enter') {
