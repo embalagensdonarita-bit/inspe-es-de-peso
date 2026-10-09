@@ -4109,25 +4109,32 @@
                                 dailyBreakdown[date].products.add(prodKey);
                             }
 
-                            // Resumo por produto (mês)
-                            if (!productSummary[prodKey]) {
-                                productSummary[prodKey] = { values: [], machines: 0, approved: 0, rejected: 0, tolMin: null, tolMid: null, tolMax: null };
+                            // Resumo por produto + tipo (separando BASE, TAMPA, POTE /C TAMPA, NENHUM)
+                            const prodTypeForSummary = m.productType || 'TAMPA';
+                            const summaryKey = prodKey + '||' + prodTypeForSummary;
+                            if (!productSummary[summaryKey]) {
+                                productSummary[summaryKey] = {
+                                    productName: prodKey,
+                                    productType: prodTypeForSummary,
+                                    values: [], machines: 0, approved: 0, rejected: 0,
+                                    tolMin: null, tolMid: null, tolMax: null
+                                };
                             }
-                            productSummary[prodKey].machines++;
-                            if (status === 'APROVADO') productSummary[prodKey].approved++;
-                            else productSummary[prodKey].rejected++;
-                            for (let i = 0; i < machineValues.length; i++) productSummary[prodKey].values.push(machineValues[i]);
-                            if (productSummary[prodKey].tolMin === null && m.tolMin) {
+                            productSummary[summaryKey].machines++;
+                            if (status === 'APROVADO') productSummary[summaryKey].approved++;
+                            else productSummary[summaryKey].rejected++;
+                            for (let i = 0; i < machineValues.length; i++) productSummary[summaryKey].values.push(machineValues[i]);
+                            if (productSummary[summaryKey].tolMin === null && m.tolMin) {
                                 const n = parseFloat(String(m.tolMin).replace(',', '.'));
-                                if (!isNaN(n)) productSummary[prodKey].tolMin = n;
+                                if (!isNaN(n)) productSummary[summaryKey].tolMin = n;
                             }
-                            if (productSummary[prodKey].tolMid === null && m.tolMid) {
+                            if (productSummary[summaryKey].tolMid === null && m.tolMid) {
                                 const n = parseFloat(String(m.tolMid).replace(',', '.'));
-                                if (!isNaN(n)) productSummary[prodKey].tolMid = n;
+                                if (!isNaN(n)) productSummary[summaryKey].tolMid = n;
                             }
-                            if (productSummary[prodKey].tolMax === null && m.tolMax) {
+                            if (productSummary[summaryKey].tolMax === null && m.tolMax) {
                                 const n = parseFloat(String(m.tolMax).replace(',', '.'));
-                                if (!isNaN(n)) productSummary[prodKey].tolMax = n;
+                                if (!isNaN(n)) productSummary[summaryKey].tolMax = n;
                             }
                         });
                     });
@@ -4257,19 +4264,25 @@
                 currentRow++;
             }
 
-            // Resumo por produto
-            const productKeysForSummary = Object.keys(productSummary).sort();
+            // Resumo por produto + tipo (BASE e TAMPA separados)
+            const productKeysForSummary = Object.keys(productSummary).sort((a, b) => {
+                const sa = productSummary[a];
+                const sb = productSummary[b];
+                const cmp = sa.productName.localeCompare(sb.productName);
+                if (cmp !== 0) return cmp;
+                return sa.productType.localeCompare(sb.productType);
+            });
             if (productKeysForSummary.length > 0) {
                 ws1.mergeCells(`A${currentRow}:H${currentRow}`);
                 const ps = ws1.getCell(`A${currentRow}`);
-                ps.value = 'RESUMO POR PRODUTO';
+                ps.value = 'RESUMO POR PRODUTO (BASE E TAMPA SEPARADOS)';
                 ps.font = fontSection;
                 ps.alignment = leftAlign;
                 ps.fill = fillSolid(C.lightGray);
                 ws1.getRow(currentRow).height = 22;
                 currentRow++;
 
-                const prodHeaders = ['Produto', 'Máquinas', 'Mín Medido', 'Média', 'Máx Medido', 'Ref Mín', 'Ref Ideal', 'Ref Máx'];
+                const prodHeaders = ['Produto', 'Tipo', 'Máquinas', 'Mín Medido', 'Média', 'Máx Medido', 'Ref Mín', 'Ref Máx'];
                 const pHeaderRow = ws1.getRow(currentRow);
                 pHeaderRow.values = prodHeaders;
                 pHeaderRow.eachCell(cell => {
@@ -4281,8 +4294,8 @@
                 pHeaderRow.height = 24;
                 currentRow++;
 
-                productKeysForSummary.forEach(prodKey => {
-                    const s = productSummary[prodKey];
+                productKeysForSummary.forEach(summaryKey => {
+                    const s = productSummary[summaryKey];
                     const vals = s.values;
                     const pMin = vals.length > 0 ? Math.min(...vals) : null;
                     const pMax = vals.length > 0 ? Math.max(...vals) : null;
@@ -4292,9 +4305,14 @@
 
                     const row = ws1.getRow(currentRow);
                     row.values = [
-                        prodKey, s.machines,
-                        fmt2(pMin), fmt3(pAvg), fmt2(pMax),
-                        fmt2(s.tolMin), fmt2(s.tolMid), fmt2(s.tolMax)
+                        s.productName,
+                        s.productType,
+                        s.machines,
+                        fmt2(pMin),
+                        fmt3(pAvg),
+                        fmt2(pMax),
+                        fmt2(s.tolMin),
+                        fmt2(s.tolMax)
                     ];
                     row.eachCell((cell, colNumber) => {
                         cell.font = fontNormal;
@@ -4304,10 +4322,14 @@
                             cell.font = fontBold;
                             cell.alignment = leftAlign;
                         }
-                        if (colNumber === 3 || colNumber === 4 || colNumber === 5) {
+                        if (colNumber === 2) {
+                            cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.secondary } };
                             cell.fill = fillSolid(C.lightPurple);
                         }
-                        if (colNumber >= 6) {
+                        if (colNumber === 4 || colNumber === 5 || colNumber === 6) {
+                            cell.fill = fillSolid(C.lightPurple);
+                        }
+                        if (colNumber === 7 || colNumber === 8) {
                             cell.fill = fillSolid(C.lightGray);
                             cell.font = { name: 'Calibri', size: 10, color: { argb: C.muted } };
                         }
