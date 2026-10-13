@@ -553,6 +553,27 @@
             display: block;
         }
 
+        @keyframes blinkAlertWarning {
+            0%, 100% {
+                background-color: #fff3cd;
+                color: #856404;
+                border-color: #ffc107;
+                box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.55);
+            }
+            50% {
+                background-color: #ffc107;
+                color: #ffffff;
+                border-color: #856404;
+                box-shadow: 0 0 14px 4px rgba(255, 193, 7, 0.75);
+            }
+        }
+        .machine-alert.warning {
+            border-color: #ffc107;
+            background-color: #fff3cd;
+            color: #856404;
+            animation: blinkAlertWarning 1s infinite;
+        }
+
         #history-section {
             background: var(--card-bg);
             padding: 20px 24px;
@@ -2537,20 +2558,10 @@
             if (!alertEl) return;
 
             const maxEl = card.querySelector('.tol-max');
-            if (!maxEl) {
-                alertEl.classList.remove('visible');
-                alertEl.textContent = '';
-                return;
-            }
+            const midEl = card.querySelector('.tol-mid');
 
-            const tolMaxRaw = String(maxEl.value).replace(',', '.');
-            const tolMax = parseFloat(tolMaxRaw);
-
-            if (isNaN(tolMax)) {
-                alertEl.classList.remove('visible');
-                alertEl.textContent = '';
-                return;
-            }
+            const tolMax = maxEl ? parseFloat(String(maxEl.value).replace(',', '.')) : NaN;
+            const tolMid = midEl ? parseFloat(String(midEl.value).replace(',', '.')) : NaN;
 
             const rows = card.querySelectorAll('.data-row');
             let sum = 0;
@@ -2570,22 +2581,32 @@
             });
 
             if (count === 0) {
-                alertEl.classList.remove('visible');
+                alertEl.classList.remove('visible', 'warning');
                 alertEl.textContent = '';
                 return;
             }
 
             const avg = sum / count;
+            const fmt = (n) => n.toFixed(2).replace('.', ',');
 
-            if (avg <= tolMax) {
-                alertEl.classList.remove('visible');
-                alertEl.textContent = '';
+            // 1) Média acima do MÁXIMO — alerta vermelho
+            if (!isNaN(tolMax) && avg > tolMax) {
+                alertEl.classList.remove('warning');
+                alertEl.classList.add('visible');
+                alertEl.textContent = `🚨 ATENÇÃO — MÉDIA GERAL ACIMA DO MÁXIMO! | 📈 Média: ${fmt(avg)} > Máx: ${fmt(tolMax)}`;
                 return;
             }
 
-            const fmt = (n) => n.toFixed(2).replace('.', ',');
-            alertEl.textContent = `🚨 ATENÇÃO — MÉDIA GERAL ACIMA DO MÁXIMO! | 📈 Média: ${fmt(avg)} > Máx: ${fmt(tolMax)}`;
-            alertEl.classList.add('visible');
+            // 2) Média acima do IDEAL (mas dentro do máximo) — alerta amarelo
+            if (!isNaN(tolMid) && avg > tolMid && (isNaN(tolMax) || avg <= tolMax)) {
+                alertEl.classList.add('warning');
+                alertEl.classList.add('visible');
+                alertEl.textContent = `⚠️ ATENÇÃO — MÉDIA GERAL ACIMA DO IDEAL! | 📈 Média: ${fmt(avg)} > Ideal: ${fmt(tolMid)}`;
+                return;
+            }
+
+            alertEl.classList.remove('visible', 'warning');
+            alertEl.textContent = '';
         }
 
         function updateStats(cardId) {
