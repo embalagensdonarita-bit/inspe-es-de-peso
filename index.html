@@ -2144,6 +2144,68 @@
         let isSaving = false;
         let lastAutoFilledMachine = null;
 
+        // ============================================================
+        // ============ SISTEMA DE VOZ FEMININA (IA) ==================
+        // ============================================================
+        let cachedFemaleVoice = null;
+
+        function pickFemalePtBrVoice() {
+            if (!('speechSynthesis' in window)) return null;
+            const voices = window.speechSynthesis.getVoices() || [];
+            // Nomes comuns de vozes femininas pt-BR em navegadores/SO
+            const femaleHints = [
+                'luciana', 'maria', 'francisca', 'fernanda', 'joana',
+                'catarina', 'ines', 'inês', 'vitoria', 'vitória',
+                'female', 'feminina', 'mulher', 'helena', 'camila',
+                'isabela', 'julia', 'júlia', 'livia', 'lívia', 'raquel'
+            ];
+            // 1) Tenta pt-BR feminina explícita
+            let found = voices.find(v => {
+                const lang = (v.lang || '').toLowerCase();
+                const name = (v.name || '').toLowerCase();
+                if (!lang.startsWith('pt')) return false;
+                return femaleHints.some(h => name.includes(h));
+            });
+            // 2) Qualquer pt-BR
+            if (!found) {
+                found = voices.find(v => (v.lang || '').toLowerCase().startsWith('pt-br'));
+            }
+            // 3) Qualquer pt
+            if (!found) {
+                found = voices.find(v => (v.lang || '').toLowerCase().startsWith('pt'));
+            }
+            return found || null;
+        }
+
+        function refreshFemaleVoice() {
+            cachedFemaleVoice = pickFemalePtBrVoice();
+        }
+
+        if ('speechSynthesis' in window) {
+            refreshFemaleVoice();
+            window.speechSynthesis.onvoiceschanged = refreshFemaleVoice;
+        }
+
+        function speakAlert(message) {
+            if (!('speechSynthesis' in window)) return;
+            if (!cachedFemaleVoice) refreshFemaleVoice();
+            try {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(message);
+                utter.lang = 'pt-BR';
+                utter.rate = 1.0;
+                utter.pitch = 1.15;   // tom mais agudo = mais feminino
+                utter.volume = 1.0;
+                if (cachedFemaleVoice) utter.voice = cachedFemaleVoice;
+                window.speechSynthesis.speak(utter);
+            } catch (e) {
+                console.warn('Erro ao falar alerta:', e);
+            }
+        }
+        // ============================================================
+        // ============ FIM DO SISTEMA DE VOZ =========================
+        // ============================================================
+
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str)
@@ -2583,30 +2645,42 @@
             if (count === 0) {
                 alertEl.classList.remove('visible', 'warning');
                 alertEl.textContent = '';
+                alertEl.removeAttribute('data-state');
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
                 return;
             }
 
             const avg = sum / count;
             const fmt = (n) => n.toFixed(2).replace('.', ',');
+            const currentState = alertEl.getAttribute('data-state') || '';
 
-            // 1) Média acima do MÁXIMO — alerta vermelho
+            // 1) Média acima do MÁXIMO — alerta vermelho + voz
             if (!isNaN(tolMax) && avg > tolMax) {
                 alertEl.classList.remove('warning');
                 alertEl.classList.add('visible');
-                alertEl.textContent = `🚨 ATENÇÃO — MÉDIA GERAL ACIMA DO MÁXIMO! | 📈 Média: ${fmt(avg)} > Máx: ${fmt(tolMax)}`;
+                alertEl.textContent = `🚨 ATENÇÃO — MÉDIA GERAL ACIMA DO MÁXIMO! | 📈 Média: ${fmt(avg)} > Máx: ${fmt(tolMax)} | Por gentileza, sinalizar facilitador urgentemente.`;
+                if (currentState !== 'max') {
+                    alertEl.setAttribute('data-state', 'max');
+                    speakAlert('Produto está acima da máxima. Por gentileza, sinalizar facilitador urgentemente.');
+                }
                 return;
             }
 
-            // 2) Média acima do IDEAL (mas dentro do máximo) — alerta amarelo
+            // 2) Média acima do IDEAL (mas dentro do máximo) — alerta amarelo + voz
             if (!isNaN(tolMid) && avg > tolMid && (isNaN(tolMax) || avg <= tolMax)) {
                 alertEl.classList.add('warning');
                 alertEl.classList.add('visible');
-                alertEl.textContent = `⚠️ ATENÇÃO — MÉDIA GERAL ACIMA DO IDEAL! | 📈 Média: ${fmt(avg)} > Ideal: ${fmt(tolMid)}`;
+                alertEl.textContent = `⚠️ ATENÇÃO — MÉDIA GERAL ACIMA DO IDEAL! | 📈 Média: ${fmt(avg)} > Ideal: ${fmt(tolMid)} | Por gentileza, sinalizar facilitador.`;
+                if (currentState !== 'mid') {
+                    alertEl.setAttribute('data-state', 'mid');
+                    speakAlert('Produto está acima da média. Por gentileza, sinalizar facilitador.');
+                }
                 return;
             }
 
             alertEl.classList.remove('visible', 'warning');
             alertEl.textContent = '';
+            alertEl.removeAttribute('data-state');
         }
 
         function updateStats(cardId) {
