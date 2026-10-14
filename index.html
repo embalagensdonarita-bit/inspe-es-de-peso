@@ -2221,14 +2221,23 @@
             return encodeURIComponent(String(str));
         }
 
-        function getWeightColorClass(value, min, max) {
+        // ============================================================
+        // ============ CLASSIFICAÇÃO DE CORES DOS PESOS ==============
+        // Regras:
+        //   - Entre o MÍNIMO e o IDEAL (média)  -> VERDE  (weight-ok)
+        //   - Acima do IDEAL e até o MÁXIMO     -> AMARELO (weight-min)
+        //   - Acima do MÁXIMO                    -> VERMELHO (weight-high)
+        //   - Abaixo do MÍNIMO                   -> VERMELHO (weight-low)
+        // ============================================================
+        function getWeightColorClass(value, min, mid, max) {
             if (value === '' || value === null || value === undefined || isNaN(value)) return '';
             const num = parseFloat(value);
             if (isNaN(num)) return '';
+            if (isNaN(min) || isNaN(max)) return '';
             if (num < min) return 'weight-low';
-            if (num === min) return 'weight-min';
-            if (num <= max) return 'weight-ok';
-            return 'weight-high';
+            if (num > max) return 'weight-high';
+            if (!isNaN(mid) && num > mid) return 'weight-min';
+            return 'weight-ok';
         }
 
         function showLoading(text) {
@@ -2583,14 +2592,23 @@
             updateStats(cardId);
         }
 
+        // ============================================================
+        // CLASSIFICAÇÃO DE CORES DOS PESOS (por cartão de máquina)
+        //   - Entre o MÍNIMO e o IDEAL (média) -> VERDE  (weight-ok)
+        //   - Acima do IDEAL e até o MÁXIMO    -> AMARELO (weight-min)
+        //   - Acima do MÁXIMO                   -> VERMELHO (weight-high)
+        //   - Abaixo do MÍNIMO                  -> VERMELHO (weight-low)
+        // ============================================================
         function classifyWeight(cardId) {
             const card = document.getElementById(cardId);
             if (!card) return;
             const minEl = card.querySelector('.tol-min');
+            const midEl = card.querySelector('.tol-mid');
             const maxEl = card.querySelector('.tol-max');
             if (!minEl || !maxEl) return;
             const tolMin = parseFloat(String(minEl.value).replace(',', '.'));
             const tolMax = parseFloat(String(maxEl.value).replace(',', '.'));
+            const tolMid = midEl ? parseFloat(String(midEl.value).replace(',', '.')) : NaN;
             if (isNaN(tolMin) || isNaN(tolMax)) return;
             const rows = card.querySelectorAll('.data-row');
             rows.forEach(row => {
@@ -2605,10 +2623,15 @@
                         input.style.backgroundColor = '';
                         return;
                     }
-                    if (val < tolMin) input.classList.add('weight-low');
-                    else if (val === tolMin) input.classList.add('weight-min');
-                    else if (val <= tolMax) input.classList.add('weight-ok');
-                    else input.classList.add('weight-high');
+                    if (val < tolMin) {
+                        input.classList.add('weight-low');        // abaixo do mínimo: VERMELHO
+                    } else if (val > tolMax) {
+                        input.classList.add('weight-high');       // acima do máximo: VERMELHO
+                    } else if (!isNaN(tolMid) && val > tolMid) {
+                        input.classList.add('weight-min');        // acima do ideal e até o máximo: AMARELO
+                    } else {
+                        input.classList.add('weight-ok');         // entre mínimo e ideal: VERDE
+                    }
                 });
             });
         }
@@ -3451,15 +3474,16 @@
                     <tbody>`;
                 const cavityCount = Math.min(m.cavity || 10, 10);
                 const minTol = parseFloat(String(m.tolMin).replace(',', '.'));
+                const midTol = parseFloat(String(m.tolMid).replace(',', '.'));
                 const maxTol = parseFloat(String(m.tolMax).replace(',', '.'));
                 for (let i = 0; i < cavityCount; i++) {
                     const r = m.rows[i] || {};
                     const valM1 = r.m1 !== '' && r.m1 !== undefined ? parseFloat(r.m1) : '';
                     const valM3 = r.m3 !== '' && r.m3 !== undefined ? parseFloat(r.m3) : '';
                     const valM4 = r.m4 !== '' && r.m4 !== undefined ? parseFloat(r.m4) : '';
-                    const clsM1 = getWeightColorClass(valM1, minTol, maxTol);
-                    const clsM3 = getWeightColorClass(valM3, minTol, maxTol);
-                    const clsM4 = getWeightColorClass(valM4, minTol, maxTol);
+                    const clsM1 = getWeightColorClass(valM1, minTol, midTol, maxTol);
+                    const clsM3 = getWeightColorClass(valM3, minTol, midTol, maxTol);
+                    const clsM4 = getWeightColorClass(valM4, minTol, midTol, maxTol);
                     html += `<tr>
                         <td>${i + 1}</td>
                         <td class="${clsM1}">${valM1 !== '' && !isNaN(valM1) ? valM1.toFixed(3).replace('.',',') : '—'}</td>
@@ -4657,6 +4681,7 @@
                 r2++;
 
                 const minTol = parseFloat(String(m.tolMin).replace(',', '.'));
+                const midTol = parseFloat(String(m.tolMid).replace(',', '.'));
                 const maxTol = parseFloat(String(m.tolMax).replace(',', '.'));
                 const cavity = Math.min(m.cavity || 10, 10);
 
@@ -4685,18 +4710,23 @@
                         if (colNumber >= 2 && colNumber <= 4) {
                             const val = colNumber === 2 ? valM1 : (colNumber === 3 ? valM3 : valM4);
                             if (val !== '' && !isNaN(val)) {
+                                // NOVA REGRA DE CORES:
+                                //  - Entre MÍN e IDEAL  -> VERDE
+                                //  - Acima do IDEAL e até o MÁX -> AMARELO
+                                //  - Acima do MÁX       -> VERMELHO
+                                //  - Abaixo do MÍN      -> VERMELHO
                                 if (val < minTol) {
                                     cell.fill = fillSolid(C.dangerBg);
                                     cell.font = { name: 'Calibri', size: 11, color: { argb: C.dangerTx }, bold: true };
-                                } else if (val === minTol) {
-                                    cell.fill = fillSolid(C.warningBg);
-                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.warningTx }, bold: true };
-                                } else if (val <= maxTol) {
-                                    cell.fill = fillSolid(C.successBg);
-                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.successTx }, bold: true };
-                                } else {
+                                } else if (val > maxTol) {
                                     cell.fill = fillSolid(C.dangerBg);
                                     cell.font = { name: 'Calibri', size: 11, color: { argb: C.dangerTx }, bold: true };
+                                } else if (!isNaN(midTol) && val > midTol) {
+                                    cell.fill = fillSolid(C.warningBg);
+                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.warningTx }, bold: true };
+                                } else {
+                                    cell.fill = fillSolid(C.successBg);
+                                    cell.font = { name: 'Calibri', size: 11, color: { argb: C.successTx }, bold: true };
                                 }
                             }
                         }
@@ -5017,6 +5047,7 @@
             html += `<h3 style="color:#241245; margin: 12px 0 6px 0; font-size: 13px;">🔍 Detalhamento das Medições</h3>`;
             allMachines.forEach(m => {
                 const minTol = parseFloat(String(m.tolMin).replace(',', '.'));
+                const midTol = parseFloat(String(m.tolMid).replace(',', '.'));
                 const maxTol = parseFloat(String(m.tolMax).replace(',', '.'));
                 html += `<div class="avoid-break" style="margin-bottom:14px;"><h4 style="color:#241245; font-size:12px; margin: 0 0 4px 0;">Máquina: ${escapeHtml(m.machine)} - Produto: ${escapeHtml(m.product)}</h4>`;
                 html += `<table style="width:100%; border-collapse:collapse; font-size:10px;">
@@ -5028,9 +5059,9 @@
                     const valM1 = r.m1 !== '' && r.m1 !== undefined ? parseFloat(r.m1) : '';
                     const valM3 = r.m3 !== '' && r.m3 !== undefined ? parseFloat(r.m3) : '';
                     const valM4 = r.m4 !== '' && r.m4 !== undefined ? parseFloat(r.m4) : '';
-                    const clsM1 = getWeightColorClass(valM1, minTol, maxTol);
-                    const clsM3 = getWeightColorClass(valM3, minTol, maxTol);
-                    const clsM4 = getWeightColorClass(valM4, minTol, maxTol);
+                    const clsM1 = getWeightColorClass(valM1, minTol, midTol, maxTol);
+                    const clsM3 = getWeightColorClass(valM3, minTol, midTol, maxTol);
+                    const clsM4 = getWeightColorClass(valM4, minTol, midTol, maxTol);
                     const bgM1 = clsM1 === 'weight-ok' ? '#d4edda' : clsM1 === 'weight-min' ? '#fff3cd' : (clsM1 === 'weight-low' || clsM1 === 'weight-high') ? '#f8d7da' : 'transparent';
                     const bgM3 = clsM3 === 'weight-ok' ? '#d4edda' : clsM3 === 'weight-min' ? '#fff3cd' : (clsM3 === 'weight-low' || clsM3 === 'weight-high') ? '#f8d7da' : 'transparent';
                     const bgM4 = clsM4 === 'weight-ok' ? '#d4edda' : clsM4 === 'weight-min' ? '#fff3cd' : (clsM4 === 'weight-low' || clsM4 === 'weight-high') ? '#f8d7da' : 'transparent';
@@ -5165,6 +5196,7 @@
                                 rows: rows,
                                 cavity: m.cavity || 10,
                                 tolMin: m.tolMin || '23,51',
+                                tolMid: m.tolMid || '24,51',
                                 tolMax: m.tolMax || '25,11',
                                 cycle: m.cycle || '',
                                 turn: m.turn || '',
@@ -5390,6 +5422,7 @@
                 if (includeCavityDetails) {
                     s.details.forEach(d => {
                         const minTol = parseFloat(String(d.tolMin).replace(',', '.'));
+                        const midTol = parseFloat(String(d.tolMid).replace(',', '.'));
                         const maxTol = parseFloat(String(d.tolMax).replace(',', '.'));
                         const cavityCount = Math.min(d.cavity || 10, 10);
                         const dt = d.rows || [];
@@ -5422,9 +5455,9 @@
                             const valM1 = r.m1 !== '' && r.m1 !== undefined ? parseFloat(r.m1) : '';
                             const valM3 = r.m3 !== '' && r.m3 !== undefined ? parseFloat(r.m3) : '';
                             const valM4 = r.m4 !== '' && r.m4 !== undefined ? parseFloat(r.m4) : '';
-                            const clsM1 = getWeightColorClass(valM1, minTol, maxTol);
-                            const clsM3 = getWeightColorClass(valM3, minTol, maxTol);
-                            const clsM4 = getWeightColorClass(valM4, minTol, maxTol);
+                            const clsM1 = getWeightColorClass(valM1, minTol, midTol, maxTol);
+                            const clsM3 = getWeightColorClass(valM3, minTol, midTol, maxTol);
+                            const clsM4 = getWeightColorClass(valM4, minTol, midTol, maxTol);
                             const bgM1 = clsM1 === 'weight-ok' ? '#d4edda' : clsM1 === 'weight-min' ? '#fff3cd' : (clsM1 === 'weight-low' || clsM1 === 'weight-high') ? '#f8d7da' : 'transparent';
                             const bgM3 = clsM3 === 'weight-ok' ? '#d4edda' : clsM3 === 'weight-min' ? '#fff3cd' : (clsM3 === 'weight-low' || clsM3 === 'weight-high') ? '#f8d7da' : 'transparent';
                             const bgM4 = clsM4 === 'weight-ok' ? '#d4edda' : clsM4 === 'weight-min' ? '#fff3cd' : (clsM4 === 'weight-low' || clsM4 === 'weight-high') ? '#f8d7da' : 'transparent';
