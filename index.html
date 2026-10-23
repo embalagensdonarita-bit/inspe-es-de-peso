@@ -2090,6 +2090,8 @@
         let hasUnsavedChanges = false;
         let isSaving = false;
         let lastAutoFilledMachine = null;
+        // Fila de máquinas removidas nesta sessão (para efetivar exclusão no Firestore)
+        let pendingRemovals = [];
 
         // ============================================================
         // ============ SISTEMA DE VOZ FEMININA (IA) ==================
@@ -2628,10 +2630,51 @@
             if (confirm('Tem certeza que deseja remover esta máquina da lista atual?')) {
                 const card = document.getElementById(id);
                 if (card) {
+                    // Registra a remoção para efetivar exclusão no Firestore ao salvar
+                    const inspEl = card.querySelector('.inspector');
+                    const prodEl = card.querySelector('.product-code');
+                    const machEl = card.querySelector('.machine-name');
+                    pendingRemovals.push({
+                        inspector: (inspEl && inspEl.value ? inspEl.value : '').trim(),
+                        product: (prodEl && prodEl.value ? prodEl.value : '').trim(),
+                        machine: (machEl && machEl.value ? machEl.value : '').trim()
+                    });
                     card.remove();
                     hasUnsavedChanges = true;
                 }
             }
+        }
+
+        // Aplica as remoções pendentes no objeto finalData antes de gravar no Firestore.
+        // Só remove entradas que não estejam mais presentes nos cartões atuais do formulário.
+        function applyPendingRemovals(finalData, currentMachines) {
+            if (!pendingRemovals.length) return;
+            if (!finalData || !finalData.inspectors) return;
+            const safeCurrent = Array.isArray(currentMachines) ? currentMachines : [];
+
+            pendingRemovals.forEach(rem => {
+                const stillPresent = safeCurrent.some(m =>
+                    (m.machine || '').trim() === rem.machine &&
+                    (m.inspector || '').trim() === rem.inspector &&
+                    (m.product || '').trim() === rem.product
+                );
+                if (stillPresent) return;
+
+                const inspKey = rem.inspector || 'SEM INSPETOR';
+                const prodKey = rem.product || 'SEM PRODUTO';
+                const inspObj = finalData.inspectors[inspKey];
+                if (!inspObj || !inspObj.products) return;
+                const arr = inspObj.products[prodKey];
+                if (!Array.isArray(arr)) return;
+
+                for (let i = arr.length - 1; i >= 0; i--) {
+                    if ((arr[i].machine || '').trim() === rem.machine) {
+                        arr.splice(i, 1);
+                    }
+                }
+                if (arr.length === 0) delete inspObj.products[prodKey];
+                if (Object.keys(inspObj.products).length === 0) delete finalData.inspectors[inspKey];
+            });
         }
 
         function updateTimeLabels(cardId) {
@@ -2940,7 +2983,11 @@
                     }
                 }
 
+                // Aplica remoções efetivamente excluídas nesta sessão
+                applyPendingRemovals(finalData, machines);
+
                 await docRef.set(finalData);
+                pendingRemovals = [];
                 hasUnsavedChanges = false;
 
                 const hdi = document.getElementById('history-date-input');
@@ -3001,7 +3048,11 @@
                     }
                 }
 
+                // Aplica remoções efetivamente excluídas nesta sessão
+                applyPendingRemovals(finalData, machines);
+
                 await docRef.set(finalData);
+                pendingRemovals = [];
                 hasUnsavedChanges = false;
 
                 const hdi = document.getElementById('history-date-input');
@@ -3048,6 +3099,7 @@
             machineCounter = 0;
             loadedDate = null;
             hasUnsavedChanges = false;
+            pendingRemovals = [];
             const sd = document.getElementById('selected-date');
             if (sd) {
                 sd.disabled = false;
@@ -3265,6 +3317,7 @@
                 document.getElementById('machines-container').innerHTML = '';
                 machineCounter = 0;
                 loadedDate = date;
+                pendingRemovals = [];
                 const sd = document.getElementById('selected-date');
                 if (sd) { sd.value = date; sd.disabled = false; }
                 const saveDaily = document.getElementById('btn-save-daily');
@@ -3305,6 +3358,7 @@
                 document.getElementById('machines-container').innerHTML = '';
                 machineCounter = 0;
                 loadedDate = date;
+                pendingRemovals = [];
                 const sd = document.getElementById('selected-date');
                 if (sd) { sd.value = date; sd.disabled = false; }
                 const saveDaily = document.getElementById('btn-save-daily');
