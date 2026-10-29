@@ -172,15 +172,9 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
-        .btn-primary {
-            background-color: var(--primary-color);
-        }
-        .btn-success {
-            background-color: var(--success);
-        }
-        .btn-danger {
-            background-color: var(--danger);
-        }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
         .btn-accent {
             background: linear-gradient(135deg, #f47b20, #e06910);
             font-weight: 600;
@@ -199,15 +193,8 @@
             background: var(--secondary-color);
             color: white;
         }
-        .btn-pdf {
-            background: #dc3545;
-            font-weight: 600;
-        }
-        .btn-warning {
-            background: #f0ad4e;
-            color: #212529;
-            font-weight: 600;
-        }
+        .btn-pdf { background: #dc3545; font-weight: 600; }
+        .btn-warning { background: #f0ad4e; color: #212529; font-weight: 600; }
         .btn-warning:hover:not(:disabled) {
             background: #ec971f;
             box-shadow: 0 4px 12px rgba(240, 173, 78, 0.4);
@@ -235,9 +222,7 @@
             position: relative;
             transition: var(--transition);
         }
-        .machine-card:hover {
-            box-shadow: var(--shadow-lg);
-        }
+        .machine-card:hover { box-shadow: var(--shadow-lg); }
         .machine-card .card-header-row {
             display: flex;
             justify-content: space-between;
@@ -306,9 +291,7 @@
             -webkit-appearance: none;
             margin: 0;
         }
-        .input-group input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        .input-group input[type="number"] { -moz-appearance: textfield; }
         .problem-area {
             display: flex;
             gap: 12px;
@@ -421,21 +404,9 @@
             background: rgba(255, 255, 255, 0.6);
             border-radius: 3px;
         }
-        .tolerance-min {
-            background-color: #fce4d6;
-            border: 1px solid #f4b084;
-            color: #d35400;
-        }
-        .tolerance-ideal {
-            background-color: #d9ead3;
-            border: 1px solid #a9d18e;
-            color: #1e7e34;
-        }
-        .tolerance-max {
-            background-color: #f4cccc;
-            border: 1px solid #ea9999;
-            color: #a61e1e;
-        }
+        .tolerance-min { background-color: #fce4d6; border: 1px solid #f4b084; color: #d35400; }
+        .tolerance-ideal { background-color: #d9ead3; border: 1px solid #a9d18e; color: #1e7e34; }
+        .tolerance-max { background-color: #f4cccc; border: 1px solid #ea9999; color: #a61e1e; }
         .measurement-table-wrapper {
             overflow-x: auto;
             border-radius: 6px;
@@ -462,12 +433,8 @@
             position: sticky;
             top: 0;
         }
-        table.measuring-table tbody tr {
-            transition: background 0.15s;
-        }
-        table.measuring-table tbody tr:hover {
-            background: #fdfcff;
-        }
+        table.measuring-table tbody tr { transition: background 0.15s; }
+        table.measuring-table tbody tr:hover { background: #fdfcff; }
         table.measuring-table td input {
             width: 100%;
             border: none;
@@ -483,42 +450,14 @@
             background: #fff;
             box-shadow: 0 0 0 4px rgba(62, 41, 112, 0.06);
         }
-        .weight-ok {
-            background-color: #d4edda !important;
-            color: #155724 !important;
-            font-weight: 600;
-        }
-        .weight-min {
-            background-color: #fff3cd !important;
-            color: #856404 !important;
-            font-weight: 600;
-        }
-        .weight-low {
-            background-color: #f8d7da !important;
-            color: #721c24 !important;
-            font-weight: 600;
-        }
-        .weight-high {
-            background-color: #f8d7da !important;
-            color: #721c24 !important;
-            font-weight: 600;
-        }
-        .stat-row td {
-            font-weight: 700;
-            background-color: #fcfcfc;
-            font-size: 12px;
-            padding: 10px 6px;
-        }
-        .stat-row .min-val {
-            color: #d35400;
-        }
-        .stat-row .avg-val {
-            color: #1e7e34;
-            font-size: 13px;
-        }
-        .stat-row .max-val {
-            color: #a61e1e;
-        }
+        .weight-ok { background-color: #d4edda !important; color: #155724 !important; font-weight: 600; }
+        .weight-min { background-color: #fff3cd !important; color: #856404 !important; font-weight: 600; }
+        .weight-low { background-color: #f8d7da !important; color: #721c24 !important; font-weight: 600; }
+        .weight-high { background-color: #f8d7da !important; color: #721c24 !important; font-weight: 600; }
+        .stat-row td { font-weight: 700; background-color: #fcfcfc; font-size: 12px; padding: 10px 6px; }
+        .stat-row .min-val { color: #d35400; }
+        .stat-row .avg-val { color: #1e7e34; font-size: 13px; }
+        .stat-row .max-val { color: #a61e1e; }
 
         @keyframes blinkAlert {
             0%, 100% {
@@ -549,9 +488,7 @@
             animation: blinkAlert 1s infinite;
             line-height: 1.5;
         }
-        .machine-alert.visible {
-            display: block;
-        }
+        .machine-alert.visible { display: block; }
 
         @keyframes blinkAlertWarning {
             0%, 100% {
@@ -583,19 +520,10 @@
             border-top: 5px solid var(--accent-color);
             display: none;
         }
-        #history-section.visible {
-            display: block;
-            animation: fadeSlideIn 0.35s ease;
-        }
+        #history-section.visible { display: block; animation: fadeSlideIn 0.35s ease; }
         @keyframes fadeSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         #history-section .history-header {
             display: flex;
@@ -605,10 +533,7 @@
             gap: 10px;
             margin-bottom: 16px;
         }
-        #history-section .history-header h3 {
-            color: #241245;
-            font-size: 18px;
-        }
+        #history-section .history-header h3 { color: #241245; font-size: 18px; }
         .close-history-btn {
             background: #f0edf7;
             border: 1px solid #d5cfe8;
@@ -620,9 +545,7 @@
             font-size: 13px;
             transition: var(--transition);
         }
-        .close-history-btn:hover {
-            background: #e0d8f5;
-        }
+        .close-history-btn:hover { background: #e0d8f5; }
         #history-results {
             margin-top: 12px;
             display: flex;
@@ -704,10 +627,7 @@
             box-shadow: var(--shadow-sm);
             border-left-color: var(--accent-color);
         }
-        .history-item .item-content {
-            flex: 1;
-            min-width: 200px;
-        }
+        .history-item .item-content { flex: 1; min-width: 200px; }
         .history-item .item-actions {
             display: flex;
             flex-direction: column;
@@ -727,10 +647,7 @@
             transition: var(--transition);
             white-space: nowrap;
         }
-        .btn-delete-item:hover {
-            background: #dc3545;
-            color: #fff;
-        }
+        .btn-delete-item:hover { background: #dc3545; color: #fff; }
         .fullscreen-report-overlay {
             position: fixed;
             top: 0;
@@ -786,9 +703,7 @@
             background: rgba(255, 255, 255, 0.35);
             transform: rotate(90deg);
         }
-        .report-content-area {
-            padding: 30px;
-        }
+        .report-content-area { padding: 30px; }
         .dash-summary-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -806,20 +721,9 @@
             position: relative;
             overflow: hidden;
         }
-        .dash-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-        }
-        .dash-card .dash-icon {
-            font-size: 36px;
-            margin-bottom: 8px;
-        }
-        .dash-card .dash-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #241245;
-            line-height: 1;
-        }
+        .dash-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .dash-card .dash-icon { font-size: 36px; margin-bottom: 8px; }
+        .dash-card .dash-value { font-size: 32px; font-weight: 700; color: #241245; line-height: 1; }
         .dash-card .dash-label {
             font-size: 12px;
             color: #888;
@@ -828,21 +732,11 @@
             margin-top: 4px;
             font-weight: 500;
         }
-        .dash-card.accent-border {
-            border-left: 4px solid var(--accent-color);
-        }
-        .dash-card.success-border {
-            border-left: 4px solid var(--success);
-        }
-        .dash-card.danger-border {
-            border-left: 4px solid var(--danger);
-        }
-        .dash-card.info-border {
-            border-left: 4px solid var(--info);
-        }
-        .dash-card.warning-border {
-            border-left: 4px solid var(--warning);
-        }
+        .dash-card.accent-border { border-left: 4px solid var(--accent-color); }
+        .dash-card.success-border { border-left: 4px solid var(--success); }
+        .dash-card.danger-border { border-left: 4px solid var(--danger); }
+        .dash-card.info-border { border-left: 4px solid var(--info); }
+        .dash-card.warning-border { border-left: 4px solid var(--warning); }
         .dash-section-title {
             font-size: 16px;
             font-weight: 700;
@@ -852,17 +746,8 @@
             border-bottom: 2px solid #f0edf7;
             letter-spacing: 0.4px;
         }
-        .bar-chart-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        .bar-chart-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .bar-chart-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+        .bar-chart-row { display: flex; align-items: center; gap: 10px; }
         .bar-chart-label {
             min-width: 90px;
             font-weight: 600;
@@ -892,15 +777,9 @@
             min-width: 50px;
             background: linear-gradient(90deg, #3e2970, #5a3f9e);
         }
-        .bar-chart-fill.warning-fill {
-            background: linear-gradient(90deg, #f47b20, #f59e4b);
-        }
-        .bar-chart-fill.danger-fill {
-            background: linear-gradient(90deg, #dc3545, #e85d6b);
-        }
-        .bar-chart-fill.success-fill {
-            background: linear-gradient(90deg, #28a745, #48c964);
-        }
+        .bar-chart-fill.warning-fill { background: linear-gradient(90deg, #f47b20, #f59e4b); }
+        .bar-chart-fill.danger-fill { background: linear-gradient(90deg, #dc3545, #e85d6b); }
+        .bar-chart-fill.success-fill { background: linear-gradient(90deg, #28a745, #48c964); }
 
         .range-chart-legend {
             display: flex;
@@ -936,9 +815,7 @@
             border-bottom: 1px solid #f0f0f0;
             flex-wrap: wrap;
         }
-        .range-chart-row:last-child {
-            border-bottom: none;
-        }
+        .range-chart-row:last-child { border-bottom: none; }
         .range-chart-label {
             min-width: 90px;
             font-weight: 700;
@@ -1052,9 +929,7 @@
             letter-spacing: 0.4px;
             text-transform: uppercase;
         }
-        .dash-table tbody tr:hover {
-            background: #fdfcff;
-        }
+        .dash-table tbody tr:hover { background: #fdfcff; }
         .status-badge {
             padding: 5px 12px;
             border-radius: 20px;
@@ -1063,20 +938,9 @@
             letter-spacing: 0.3px;
             display: inline-block;
         }
-        .status-approved {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status-rejected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .problem-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 24px;
-        }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .problem-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
         .problem-item {
             background: #fdf8f5;
             border-left: 4px solid #dc3545;
@@ -1087,29 +951,11 @@
             gap: 12px;
             flex-wrap: wrap;
         }
-        .problem-item strong {
-            font-size: 14px;
-            color: #241245;
-            min-width: 100px;
-        }
-        .problem-item span {
-            flex: 1;
-            color: #721c24;
-            font-weight: 500;
-            font-size: 13px;
-        }
-        .detail-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            margin-bottom: 20px;
-        }
+        .problem-item strong { font-size: 14px; color: #241245; min-width: 100px; }
+        .problem-item span { flex: 1; color: #721c24; font-weight: 500; font-size: 13px; }
+        .detail-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px; }
         .detail-table th,
-        .detail-table td {
-            border: 1px solid #ccc;
-            padding: 6px 5px;
-            text-align: center;
-        }
+        .detail-table td { border: 1px solid #ccc; padding: 6px 5px; text-align: center; }
         .detail-table thead th {
             background: #241245;
             color: #fff;
@@ -1118,9 +964,7 @@
             text-transform: uppercase;
             letter-spacing: 0.4px;
         }
-        .detail-table tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
+        .detail-table tbody tr:nth-child(even) { background: #f9f9f9; }
         .report-actions {
             display: flex;
             gap: 12px;
@@ -1138,9 +982,7 @@
             justify-content: center;
             backdrop-filter: blur(2px);
         }
-        #global-loading.visible {
-            display: flex;
-        }
+        #global-loading.visible { display: flex; }
         #global-loading .loading-box {
             background: #fff;
             padding: 20px 30px;
@@ -1161,60 +1003,24 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 768px) {
-            .header-info {
-                flex-direction: column;
-                width: 100%;
-                margin-top: 10px;
-            }
-            .header-info input {
-                width: 100%;
-            }
-            .toolbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .toolbar-buttons {
-                justify-content: stretch;
-            }
-            .toolbar-buttons .btn {
-                flex: 1;
-                justify-content: center;
-            }
-            .tolerance-row {
-                flex-direction: column;
-            }
-            .form-header {
-                grid-template-columns: 1fr 1fr;
-            }
-            .schedule-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .problem-area {
-                flex-direction: column;
-            }
-            .dash-summary-cards {
-                grid-template-columns: 1fr 1fr;
-            }
-            .bar-chart-label {
-                min-width: 60px;
-                font-size: 10px;
-            }
+            .header-info { flex-direction: column; width: 100%; margin-top: 10px; }
+            .header-info input { width: 100%; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .toolbar-buttons { justify-content: stretch; }
+            .toolbar-buttons .btn { flex: 1; justify-content: center; }
+            .tolerance-row { flex-direction: column; }
+            .form-header { grid-template-columns: 1fr 1fr; }
+            .schedule-row { flex-direction: column; align-items: stretch; }
+            .problem-area { flex-direction: column; }
+            .dash-summary-cards { grid-template-columns: 1fr 1fr; }
+            .bar-chart-label { min-width: 60px; font-size: 10px; }
         }
         @media (max-width: 480px) {
-            .form-header {
-                grid-template-columns: 1fr;
-            }
-            .dash-summary-cards {
-                grid-template-columns: 1fr;
-            }
-            .dash-table {
-                font-size: 10px;
-            }
+            .form-header { grid-template-columns: 1fr; }
+            .dash-summary-cards { grid-template-columns: 1fr; }
+            .dash-table { font-size: 10px; }
         }
 
         .tab-bar {
@@ -1241,23 +1047,15 @@
             align-items: center;
             gap: 8px;
         }
-        .tab-btn:hover:not(.active) {
-            background: #f0edf7;
-            transform: translateY(-1px);
-        }
+        .tab-btn:hover:not(.active) { background: #f0edf7; transform: translateY(-1px); }
         .tab-btn.active {
             background: linear-gradient(135deg, #241245, #3e2970);
             color: #ffffff;
             border-bottom-color: #f47b20;
             box-shadow: 0 4px 12px rgba(36, 18, 69, 0.25);
         }
-        .tab-pane {
-            display: none;
-        }
-        .tab-pane.active {
-            display: block;
-            animation: fadeSlideIn 0.3s ease;
-        }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; animation: fadeSlideIn 0.3s ease; }
 
         .version-change-grid {
             display: grid;
@@ -1292,15 +1090,9 @@
             position: relative;
             overflow: hidden;
         }
-        .version-card:hover {
-            box-shadow: var(--shadow-lg);
-        }
-        .version-card.current-card {
-            border-top-color: #dc3545;
-        }
-        .version-card.new-card {
-            border-top-color: #28a745;
-        }
+        .version-card:hover { box-shadow: var(--shadow-lg); }
+        .version-card.current-card { border-top-color: #dc3545; }
+        .version-card.new-card { border-top-color: #28a745; }
         .version-card::before {
             content: '';
             position: absolute;
@@ -1312,12 +1104,8 @@
             opacity: 0.08;
             pointer-events: none;
         }
-        .version-card.current-card::before {
-            background: #dc3545;
-        }
-        .version-card.new-card::before {
-            background: #28a745;
-        }
+        .version-card.current-card::before { background: #dc3545; }
+        .version-card.new-card::before { background: #28a745; }
         .version-card-header {
             display: flex;
             align-items: center;
@@ -1344,12 +1132,8 @@
             text-transform: uppercase;
             color: #fff;
         }
-        .version-badge.outgoing {
-            background: linear-gradient(135deg, #dc3545, #e85d6b);
-        }
-        .version-badge.incoming {
-            background: linear-gradient(135deg, #28a745, #48c964);
-        }
+        .version-badge.outgoing { background: linear-gradient(135deg, #dc3545, #e85d6b); }
+        .version-badge.incoming { background: linear-gradient(135deg, #28a745, #48c964); }
         .photo-upload-area {
             width: 100%;
             aspect-ratio: 4 / 3;
@@ -1419,10 +1203,7 @@
             transition: var(--transition);
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .photo-remove-btn:hover {
-            background: #dc3545;
-            transform: scale(1.1);
-        }
+        .photo-remove-btn:hover { background: #dc3545; transform: scale(1.1); }
         .version-info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1430,9 +1211,7 @@
             position: relative;
             z-index: 1;
         }
-        .version-info-grid .full-width {
-            grid-column: 1 / -1;
-        }
+        .version-info-grid .full-width { grid-column: 1 / -1; }
         .version-input-group label {
             display: block;
             font-size: 10px;
@@ -1463,10 +1242,7 @@
             background: #fff;
             box-shadow: 0 0 0 3px rgba(62, 41, 112, 0.08);
         }
-        .version-input-group textarea {
-            resize: vertical;
-            min-height: 54px;
-        }
+        .version-input-group textarea { resize: vertical; min-height: 54px; }
         .version-summary-bar {
             background: linear-gradient(135deg, #241245, #3e2970);
             color: #fff;
@@ -1513,9 +1289,7 @@
         }
 
         @media (max-width: 900px) {
-            .version-change-grid {
-                grid-template-columns: 1fr;
-            }
+            .version-change-grid { grid-template-columns: 1fr; }
             .version-arrow {
                 transform: rotate(90deg);
                 font-size: 36px;
@@ -1527,9 +1301,7 @@
             }
         }
         @media (max-width: 520px) {
-            .version-info-grid {
-                grid-template-columns: 1fr;
-            }
+            .version-info-grid { grid-template-columns: 1fr; }
         }
 
         #version-print-area {
@@ -1562,27 +1334,17 @@
             max-width: 90vw;
             text-align: center;
         }
-        .auto-fill-toast.visible {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        .auto-fill-toast.success {
-            background: linear-gradient(135deg, #28a745, #48c964);
-        }
-        .auto-fill-toast.warning {
-            background: linear-gradient(135deg, #f0ad4e, #ec971f);
-        }
-        .auto-fill-toast.error {
-            background: linear-gradient(135deg, #dc3545, #e85d6b);
-        }
+        .auto-fill-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .auto-fill-toast.success { background: linear-gradient(135deg, #28a745, #48c964); }
+        .auto-fill-toast.warning { background: linear-gradient(135deg, #f0ad4e, #ec971f); }
+        .auto-fill-toast.error { background: linear-gradient(135deg, #dc3545, #e85d6b); }
         .version-input-group input.auto-filled {
             border-color: #28a745 !important;
             background: #f0fdf4 !important;
             box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12) !important;
             transition: all 0.4s ease;
         }
-        
-        /* LISTA DE SELEÇÃO DE PEÇAS */
+
         .product-checkbox-label {
             display: flex;
             align-items: center;
@@ -1595,9 +1357,7 @@
             color: #241245;
             transition: background 0.15s;
         }
-        .product-checkbox-label:hover {
-            background: #f0edf7;
-        }
+        .product-checkbox-label:hover { background: #f0edf7; }
         .product-checkbox-label input[type="checkbox"] {
             width: 16px;
             height: 16px;
@@ -1605,7 +1365,6 @@
             accent-color: #3e2970;
         }
 
-        /* CONFIGURAÇÃO TEXTAREA */
         .config-textarea {
             width: 100%;
             height: 400px;
@@ -1622,6 +1381,240 @@
             border-color: var(--secondary-color);
             box-shadow: 0 0 0 3px rgba(62, 41, 112, 0.08);
             background: #fff;
+        }
+
+        /* ============ GALERIA DE PROBLEMAS ============ */
+        .galeria-form-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+            box-shadow: var(--shadow-md);
+            border-top: 5px solid var(--success);
+            margin-bottom: 20px;
+        }
+        .galeria-form-card h3 {
+            font-size: 17px;
+            color: #241245;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .galeria-photo-upload {
+            width: 100%;
+            max-width: 380px;
+            aspect-ratio: 4 / 3;
+            border: 2.5px dashed #c9b5ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: #fafbfc;
+            margin: 0 auto 16px;
+            transition: all 0.2s ease;
+        }
+        .galeria-photo-upload:hover {
+            border-color: var(--accent-color);
+            background: #fff8f2;
+        }
+        .galeria-photo-upload.has-photo {
+            border-style: solid;
+            border-color: #3e2970;
+            background: #000;
+        }
+        .galeria-photo-upload img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .galeria-photo-placeholder {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            pointer-events: none;
+            padding: 20px;
+        }
+        .galeria-photo-placeholder .icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .galeria-photo-placeholder .hint {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+        .galeria-photo-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(220, 53, 69, 0.9);
+            color: #fff;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .galeria-photo-remove-btn:hover { background: #dc3545; transform: scale(1.1); }
+
+        .galeria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .galeria-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+        .galeria-card:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .galeria-card .galeria-img-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #000;
+            overflow: hidden;
+        }
+        .galeria-card .galeria-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            cursor: zoom-in;
+            transition: transform 0.3s ease;
+        }
+        .galeria-card:hover .galeria-img-wrap img { transform: scale(1.03); }
+        .galeria-card .galeria-cat-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        .galeria-cat-aprovados { background: #28a745; }
+        .galeria-cat-reprovado { background: #dc3545; }
+        .galeria-cat-aprovado-gerencialmente { background: #f0ad4e; color: #212529; }
+        .galeria-card .galeria-info {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .galeria-card .galeria-produto {
+            font-weight: 700;
+            color: #241245;
+            font-size: 13px;
+            word-break: break-word;
+        }
+        .galeria-card .galeria-desc {
+            font-size: 11px;
+            color: #666;
+            flex: 1;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        .galeria-card .galeria-meta {
+            font-size: 10px;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .galeria-card .galeria-actions {
+            padding: 8px 12px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .galeria-card .btn-del-galeria {
+            background: #fff;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 4px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .galeria-card .btn-del-galeria:hover { background: #dc3545; color: #fff; }
+        .galeria-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        #galeria-lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 9999999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #galeria-lightbox.visible { display: flex; }
+        #galeria-lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+            box-shadow: 0 0 40px rgba(255,255,255,0.1);
+        }
+        #galeria-lightbox .lb-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            z-index: 2;
+        }
+        #galeria-lightbox .lb-close:hover {
+            background: rgba(255,255,255,0.35);
+            transform: rotate(90deg);
         }
     </style>
 </head>
@@ -1640,6 +1633,7 @@
     <div class="tab-bar">
         <button type="button" class="tab-btn active" id="tab-btn-inspecao" onclick="switchTab('inspecao', this)">📋 Inspeção de Peso</button>
         <button type="button" class="tab-btn" id="tab-btn-troca-versao" onclick="switchTab('troca-versao', this)">🔄 Troca de Versão</button>
+        <button type="button" class="tab-btn" id="tab-btn-galeria" onclick="switchTab('galeria', this)">📸 Galeria de Problemas</button>
         <button type="button" class="tab-btn" id="tab-btn-configuracao" onclick="switchTab('configuracao', this)">⚙️ Configuração</button>
     </div>
 
@@ -1884,6 +1878,84 @@
         </div>
     </div>
 
+    <!-- ============ ABA GALERIA DE PROBLEMAS ============ -->
+    <div id="tab-galeria" class="tab-pane">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <h3>📸 Galeria de Problemas</h3>
+                <small>Adicione fotos de problemas identificados e consulte por produto e categoria</small>
+            </div>
+        </div>
+
+        <div class="galeria-form-card">
+            <h3>➕ Adicionar Nova Foto</h3>
+
+            <div class="galeria-photo-upload" id="galeria-photo-area" onclick="triggerGaleriaPhotoUpload()">
+                <img id="galeria-photo-preview" style="display:none;" alt="Prévia">
+                <div class="galeria-photo-placeholder" id="galeria-photo-placeholder">
+                    <span class="icon">📷</span>
+                    <div><strong>Clique para adicionar foto</strong></div>
+                    <div class="hint">Câmera ou galeria</div>
+                </div>
+                <button type="button" class="galeria-photo-remove-btn" id="galeria-photo-remove" style="display:none;" onclick="removeGaleriaPhoto(event)" title="Remover foto">✕</button>
+            </div>
+            <input type="file" id="galeria-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handleGaleriaPhoto(event)">
+
+            <div class="form-header">
+                <div class="input-group">
+                    <label>📦 Produto</label>
+                    <input type="text" id="galeria-product" placeholder="Ex: D50 R PR" list="product-list" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label>🏷️ Categoria</label>
+                    <select id="galeria-category">
+                        <option value="APROVADOS">✅ APROVADOS</option>
+                        <option value="REPROVADO">❌ REPROVADO</option>
+                        <option value="APROVADO GERENCIALMENTE">⚠️ APROVADO GERENCIALMENTE</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>📅 Data</label>
+                    <input type="date" id="galeria-date">
+                </div>
+                <div class="input-group">
+                    <label>👤 Responsável</label>
+                    <input type="text" id="galeria-responsible" placeholder="Ex: MARILHA" list="inspector-list" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 16px;">
+                <label>📝 Descrição / Observação</label>
+                <textarea id="galeria-description" rows="2" placeholder="Descreva o problema ou observação..." style="width:100%; padding:9px 10px; border:1.5px solid var(--gray-border); border-radius:5px; font-size:13px; background:#fafbfc; font-family:'Roboto',sans-serif; resize:vertical;"></textarea>
+            </div>
+
+            <div style="text-align: center;">
+                <button type="button" class="btn btn-success" onclick="saveGaleriaPhoto()">💾 Salvar Foto</button>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <h3>🔍 Filtrar Galeria</h3>
+                <small>Filtre por produto (com autocomplete) e/ou categoria</small>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; flex: 1; min-width: 260px;">
+                <input type="text" id="galeria-filter-product" placeholder="🔍 Filtrar por produto..." list="product-list" oninput="loadGaleria()" autocomplete="off" style="flex: 1; min-width: 200px; padding: 10px 12px; border: 1.5px solid #ccc; border-radius: 6px; font-size: 13px; font-weight: 500;">
+                <select id="galeria-filter-category" onchange="loadGaleria()" style="padding: 10px 12px; border: 1.5px solid #ccc; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                    <option value="">Todas as categorias</option>
+                    <option value="APROVADOS">✅ APROVADOS</option>
+                    <option value="REPROVADO">❌ REPROVADO</option>
+                    <option value="APROVADO GERENCIALMENTE">⚠️ APROVADO GERENCIALMENTE</option>
+                </select>
+                <button type="button" class="btn btn-outline" onclick="clearGaleriaFilters()">🔄 Limpar</button>
+            </div>
+        </div>
+
+        <div id="galeria-container">
+            <p style="color: #888; text-align: center; padding: 20px;">Carregando galeria...</p>
+        </div>
+    </div>
+
     <!-- ============ ABA CONFIGURAÇÃO ============ -->
     <div id="tab-configuracao" class="tab-pane">
         <div class="toolbar">
@@ -1912,6 +1984,12 @@
     <div id="report-modal-container"></div>
     <div id="pdf-generation-container" style="position: absolute; left: -9999px; top: 0; width: 900px;"></div>
     <div id="version-print-area"></div>
+
+    <!-- LIGHTBOX GALERIA -->
+    <div id="galeria-lightbox" onclick="closeGaleriaLightbox()">
+        <img id="galeria-lightbox-img" alt="Foto ampliada" onclick="event.stopPropagation()">
+        <button type="button" class="lb-close" onclick="event.stopPropagation(); closeGaleriaLightbox();" title="Fechar">✕</button>
+    </div>
 
     <div id="pdf-report-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
         <div style="background:#fff; padding:30px; border-radius:12px; width:450px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
@@ -1944,7 +2022,6 @@
         <div style="background:#fff; padding:30px; border-radius:12px; width:520px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <h3 style="color:#241245; margin-bottom:20px; text-align:center;">📦 Gerar PDF por Peça</h3>
             <p style="color:#555; margin-bottom:15px;">Escolha as peças e o tipo de relatório:</p>
-            
             <div style="margin-bottom:15px;">
                 <label style="display:block; font-weight:600; margin-bottom:5px;">📦 Produtos / Peças:</label>
                 <input type="text" id="product-search-input" placeholder="🔍 Digite para buscar uma peça..." oninput="filterProductCheckboxes()" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:14px; margin-bottom:8px;" autocomplete="off">
@@ -1955,7 +2032,6 @@
                 <div id="product-checkboxes-container" style="height: 200px; overflow-y: auto; border: 1.5px solid #ccc; border-radius: 6px; padding: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 2px;"></div>
                 <small style="display:block; color:#888; font-size:11px; margin-top:4px;">Selecione uma ou mais peças na lista acima.</small>
             </div>
-            
             <div style="margin-bottom:20px;">
                 <label style="display:block; margin-bottom:8px;">
                     <input type="radio" name="product-report-type" value="daily" checked onchange="toggleProductReportType()"> Diário (um dia específico)
@@ -1979,7 +2055,6 @@
         </div>
     </div>
 
-    <!-- ============ EXCEL MODAL (DIÁRIO/MENSAL) ============ -->
     <div id="excel-report-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
         <div style="background:#fff; padding:30px; border-radius:12px; width:450px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <h3 style="color:#1D6F42; margin-bottom:20px; text-align:center;">📊 Gerar Relatório Excel</h3>
@@ -2007,12 +2082,10 @@
         </div>
     </div>
 
-    <!-- ============ EXCEL POR PEÇA MODAL ============ -->
     <div id="product-excel-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center;">
         <div style="background:#fff; padding:30px; border-radius:12px; width:520px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <h3 style="color:#1D6F42; margin-bottom:20px; text-align:center;">📦 Gerar Excel por Peça</h3>
             <p style="color:#555; margin-bottom:15px;">Escolha as peças e o tipo de relatório:</p>
-            
             <div style="margin-bottom:15px;">
                 <label style="display:block; font-weight:600; margin-bottom:5px;">📦 Produtos / Peças:</label>
                 <input type="text" id="product-excel-search-input" placeholder="🔍 Digite para buscar uma peça..." oninput="filterProductExcelCheckboxes()" style="width:100%; padding:10px; border:1.5px solid #ccc; border-radius:6px; font-size:14px; margin-bottom:8px;" autocomplete="off">
@@ -2023,7 +2096,6 @@
                 <div id="product-excel-checkboxes-container" style="height: 200px; overflow-y: auto; border: 1.5px solid #ccc; border-radius: 6px; padding: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 2px;"></div>
                 <small style="display:block; color:#888; font-size:11px; margin-top:4px;">Selecione uma ou mais peças na lista acima.</small>
             </div>
-            
             <div style="margin-bottom:20px;">
                 <label style="display:block; margin-bottom:8px;">
                     <input type="radio" name="product-excel-type" value="daily" checked onchange="toggleProductExcelType()"> Diário (um dia específico)
@@ -2076,12 +2148,14 @@
         const INSPECTOR_CACHE_KEY = 'dr_inspector_names_v1';
         const INSPECTOR_LOOKBACK_DAYS = 90;
 
-        // NOVAS CONSTANTES PARA CONFIGURAÇÃO
         const CONFIG_PASSWORD = "20362881";
         const CONFIG_COLLECTION = "configuracoes";
         const CONFIG_DOC = "pesos_produtos";
         let productConfig = {};
         let initialProductOptions = [];
+
+        const GALERIA_COLLECTION = "galeria_problemas";
+        let galeriaPhotoData = null;
 
         const today = new Date().toISOString().split('T')[0];
         let machineCounter = 0;
@@ -2090,7 +2164,6 @@
         let hasUnsavedChanges = false;
         let isSaving = false;
         let lastAutoFilledMachine = null;
-        // Fila de máquinas removidas nesta sessão (para efetivar exclusão no Firestore)
         let pendingRemovals = [];
 
         // ============================================================
@@ -2147,9 +2220,6 @@
                 console.warn('Erro ao falar alerta:', e);
             }
         }
-        // ============================================================
-        // ============ FIM DO SISTEMA DE VOZ =========================
-        // ============================================================
 
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
@@ -2166,9 +2236,6 @@
             return encodeURIComponent(String(str));
         }
 
-        // ============================================================
-        // ============ CLASSIFICAÇÃO DE CORES DOS PESOS ==============
-        // ============================================================
         function getWeightColorClass(value, min, mid, max) {
             if (value === '' || value === null || value === undefined || isNaN(value)) return '';
             const num = parseFloat(value);
@@ -2196,6 +2263,8 @@
             const hd = document.getElementById('history-date-input');
             if (sd) sd.value = today;
             if (hd) hd.value = today;
+            const gd = document.getElementById('galeria-date');
+            if (gd) gd.value = today;
         }
 
         function calculateOptimalScale(container) {
@@ -2313,13 +2382,9 @@
         function updateProductDatalist() {
             const datalist = document.getElementById('product-list');
             if (!datalist) return;
-
             datalist.innerHTML = '';
-
-            // Combina opções iniciais e do config
             const allProducts = new Set([...initialProductOptions, ...Object.keys(productConfig)]);
             const sortedProducts = Array.from(allProducts).sort();
-
             const fragment = document.createDocumentFragment();
             sortedProducts.forEach(prodName => {
                 const option = document.createElement('option');
@@ -2364,7 +2429,6 @@
 
             for (let i = 0; i < prodLines.length; i++) {
                 const prodName = prodLines[i];
-                // Tenta separar por TAB, senão por qualquer espaço múltiplo
                 let parts = tolLines[i].split('\t');
                 if (parts.length < 3) {
                     parts = tolLines[i].split(/\s+/);
@@ -2386,9 +2450,7 @@
 
             try {
                 showLoading('Salvando configurações...');
-                // Salva no Firestore
                 await db.collection(CONFIG_COLLECTION).doc(CONFIG_DOC).set({ products: productConfig });
-                // Salva no localStorage como backup
                 localStorage.setItem('dr_product_config', JSON.stringify(productConfig));
                 alert('✅ Lista de produtos e tolerâncias salva com sucesso!');
                 updateProductDatalist();
@@ -2412,12 +2474,269 @@
         }
 
         function cancelProductConfig() {
-            updateConfigTextareas(); // Restaura do estado salvo
+            updateConfigTextareas();
         }
-        // ============================================================
-        // ============ FIM DA CONFIGURAÇÃO ===========================
-        // ============================================================
 
+        // ============================================================
+        // ============ GALERIA DE PROBLEMAS ==========================
+        // ============================================================
+        function triggerGaleriaPhotoUpload() {
+            const input = document.getElementById('galeria-photo-input');
+            if (input) input.click();
+        }
+
+        function compressImage(dataUrl, maxWidth, quality) {
+            maxWidth = maxWidth || 800;
+            quality = quality || 0.72;
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    try {
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    } catch (err) {
+                        resolve(dataUrl);
+                    }
+                };
+                img.onerror = () => resolve(dataUrl);
+                img.src = dataUrl;
+            });
+        }
+
+        async function handleGaleriaPhoto(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                alert('⚠️ Por favor, selecione um arquivo de imagem.');
+                event.target.value = '';
+                return;
+            }
+            showLoading('Processando imagem...');
+            try {
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                const compressed = await compressImage(dataUrl, 800, 0.72);
+                galeriaPhotoData = compressed;
+
+                const img = document.getElementById('galeria-photo-preview');
+                const placeholder = document.getElementById('galeria-photo-placeholder');
+                const area = document.getElementById('galeria-photo-area');
+                const removeBtn = document.getElementById('galeria-photo-remove');
+                if (img) { img.src = compressed; img.style.display = 'block'; }
+                if (placeholder) placeholder.style.display = 'none';
+                if (area) area.classList.add('has-photo');
+                if (removeBtn) removeBtn.style.display = 'flex';
+            } catch (err) {
+                console.error('Erro ao processar imagem:', err);
+                alert('❌ Erro ao processar imagem.');
+                event.target.value = '';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function removeGaleriaPhoto(event) {
+            if (event) event.stopPropagation();
+            galeriaPhotoData = null;
+            const img = document.getElementById('galeria-photo-preview');
+            const placeholder = document.getElementById('galeria-photo-placeholder');
+            const area = document.getElementById('galeria-photo-area');
+            const removeBtn = document.getElementById('galeria-photo-remove');
+            const input = document.getElementById('galeria-photo-input');
+            if (img) { img.src = ''; img.style.display = 'none'; }
+            if (placeholder) placeholder.style.display = 'block';
+            if (area) area.classList.remove('has-photo');
+            if (removeBtn) removeBtn.style.display = 'none';
+            if (input) input.value = '';
+        }
+
+        async function saveGaleriaPhoto() {
+            const productEl = document.getElementById('galeria-product');
+            const categoryEl = document.getElementById('galeria-category');
+            const dateEl = document.getElementById('galeria-date');
+            const responsibleEl = document.getElementById('galeria-responsible');
+            const descriptionEl = document.getElementById('galeria-description');
+
+            const product = productEl ? productEl.value.trim() : '';
+            const category = categoryEl ? categoryEl.value : '';
+            const date = dateEl ? dateEl.value : '';
+            const responsible = responsibleEl ? responsibleEl.value.trim() : '';
+            const description = descriptionEl ? descriptionEl.value.trim() : '';
+
+            if (!galeriaPhotoData) { alert('⚠️ Adicione uma foto antes de salvar.'); return; }
+            if (!product) { alert('⚠️ Informe o produto.'); return; }
+            if (!category) { alert('⚠️ Selecione a categoria.'); return; }
+            if (!date) { alert('⚠️ Selecione a data.'); return; }
+
+            showLoading('Salvando foto...');
+            try {
+                await db.collection(GALERIA_COLLECTION).add({
+                    product: product,
+                    category: category,
+                    date: date,
+                    responsible: responsible,
+                    description: description,
+                    photo: galeriaPhotoData,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert('✅ Foto salva com sucesso!');
+                removeGaleriaPhoto(null);
+                if (descriptionEl) descriptionEl.value = '';
+                if (responsibleEl) responsibleEl.value = '';
+                await loadGaleria();
+            } catch (err) {
+                console.error('Erro ao salvar foto:', err);
+                alert('❌ Erro ao salvar foto.\n' + (err && err.message ? err.message : 'Verifique a conexão.'));
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadGaleria() {
+            const container = document.getElementById('galeria-container');
+            if (!container) return;
+            container.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">🔄 Carregando galeria...</p>';
+            try {
+                const filterProductInput = document.getElementById('galeria-filter-product');
+                const filterCategoryInput = document.getElementById('galeria-filter-category');
+                const filterProduct = filterProductInput ? filterProductInput.value.trim().toUpperCase() : '';
+                const filterCategory = filterCategoryInput ? filterCategoryInput.value : '';
+
+                const snapshot = await db.collection(GALERIA_COLLECTION).get();
+                const items = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (!data) return;
+                    if (filterCategory && data.category !== filterCategory) return;
+                    if (filterProduct) {
+                        const p = String(data.product || '').toUpperCase();
+                        if (!p.includes(filterProduct)) return;
+                    }
+                    items.push({
+                        id: doc.id,
+                        product: data.product || '',
+                        category: data.category || '',
+                        date: data.date || '',
+                        responsible: data.responsible || '',
+                        description: data.description || '',
+                        photo: data.photo || ''
+                    });
+                });
+
+                items.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+                if (items.length === 0) {
+                    container.innerHTML = '<div class="galeria-empty">📭 Nenhuma foto encontrada com os filtros atuais.</div>';
+                    return;
+                }
+
+                const grid = document.createElement('div');
+                grid.className = 'galeria-grid';
+
+                items.forEach(item => {
+                    let catClass = 'galeria-cat-aprovados';
+                    let catIcon = '✅';
+                    let catLabel = 'APROVADOS';
+                    if (item.category === 'REPROVADO') {
+                        catClass = 'galeria-cat-reprovado';
+                        catIcon = '❌';
+                        catLabel = 'REPROVADO';
+                    } else if (item.category === 'APROVADO GERENCIALMENTE') {
+                        catClass = 'galeria-cat-aprovado-gerencialmente';
+                        catIcon = '⚠️';
+                        catLabel = 'APROV. GERENCIALMENTE';
+                    }
+
+                    const dateFmt = item.date ? item.date.split('-').reverse().join('/') : '—';
+                    const card = document.createElement('div');
+                    card.className = 'galeria-card';
+
+                    card.innerHTML = `
+                        <div class="galeria-img-wrap">
+                            <img src="${item.photo}" alt="Foto" onclick="openGaleriaLightbox(this)">
+                            <span class="galeria-cat-badge ${catClass}">${catIcon} ${catLabel}</span>
+                        </div>
+                        <div class="galeria-info">
+                            <div class="galeria-produto">📦 ${escapeHtml(item.product || '—')}</div>
+                            ${item.description ? `<div class="galeria-desc">${escapeHtml(item.description)}</div>` : ''}
+                            <div class="galeria-meta">
+                                <span>📅 ${dateFmt}</span>
+                                ${item.responsible ? `<span>👤 ${escapeHtml(item.responsible)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="galeria-actions">
+                            <button type="button" class="btn-del-galeria" onclick="deleteGaleriaItem('${item.id}')">🗑️ Excluir</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                container.innerHTML = '';
+                container.appendChild(grid);
+            } catch (err) {
+                console.error('Erro ao carregar galeria:', err);
+                container.innerHTML = '<div class="galeria-empty" style="color:#dc3545;">❌ Erro ao carregar a galeria. Verifique a conexão.</div>';
+            }
+        }
+
+        function openGaleriaLightbox(imgEl) {
+            if (!imgEl || !imgEl.src) return;
+            const lb = document.getElementById('galeria-lightbox');
+            const lbImg = document.getElementById('galeria-lightbox-img');
+            if (lb && lbImg) {
+                lbImg.src = imgEl.src;
+                lb.classList.add('visible');
+            }
+        }
+
+        function closeGaleriaLightbox() {
+            const lb = document.getElementById('galeria-lightbox');
+            const lbImg = document.getElementById('galeria-lightbox-img');
+            if (lb) lb.classList.remove('visible');
+            if (lbImg) lbImg.src = '';
+        }
+
+        async function deleteGaleriaItem(id) {
+            const senha = prompt('🔒 Digite a senha para excluir esta foto:');
+            if (senha !== SENHA_EXCLUSAO) { alert('❌ Senha incorreta!'); return; }
+            if (!confirm('⚠️ Excluir esta foto da galeria?')) return;
+            showLoading('Excluindo...');
+            try {
+                await db.collection(GALERIA_COLLECTION).doc(id).delete();
+                await loadGaleria();
+            } catch (err) {
+                console.error('Erro ao excluir:', err);
+                alert('❌ Erro ao excluir.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function clearGaleriaFilters() {
+            const fp = document.getElementById('galeria-filter-product');
+            const fc = document.getElementById('galeria-filter-category');
+            if (fp) fp.value = '';
+            if (fc) fc.value = '';
+            loadGaleria();
+        }
+
+        // ============================================================
+        // ============ RESTO DO SISTEMA (mantido original) ==========
+        // ============================================================
 
         function addMachineCard(machineData = null) {
             const container = document.getElementById('machines-container');
@@ -2597,7 +2916,6 @@
             cardElement.querySelector('.inspector').addEventListener('input', markDirty);
             cardElement.querySelector('.machine-name').addEventListener('input', markDirty);
             
-            // EVENTO PARA AUTO-PREENCHER TOLERÂNCIAS
             cardElement.querySelector('.product-code').addEventListener('input', markDirty);
             cardElement.querySelector('.product-code').addEventListener('change', function() {
                 const prodName = this.value.trim();
@@ -2630,7 +2948,6 @@
             if (confirm('Tem certeza que deseja remover esta máquina da lista atual?')) {
                 const card = document.getElementById(id);
                 if (card) {
-                    // Registra a remoção para efetivar exclusão no Firestore ao salvar
                     const inspEl = card.querySelector('.inspector');
                     const prodEl = card.querySelector('.product-code');
                     const machEl = card.querySelector('.machine-name');
@@ -2645,8 +2962,6 @@
             }
         }
 
-        // Aplica as remoções pendentes no objeto finalData antes de gravar no Firestore.
-        // Só remove entradas que não estejam mais presentes nos cartões atuais do formulário.
         function applyPendingRemovals(finalData, currentMachines) {
             if (!pendingRemovals.length) return;
             if (!finalData || !finalData.inspectors) return;
@@ -2983,7 +3298,6 @@
                     }
                 }
 
-                // Aplica remoções efetivamente excluídas nesta sessão
                 applyPendingRemovals(finalData, machines);
 
                 await docRef.set(finalData);
@@ -3048,7 +3362,6 @@
                     }
                 }
 
-                // Aplica remoções efetivamente excluídas nesta sessão
                 applyPendingRemovals(finalData, machines);
 
                 await docRef.set(finalData);
@@ -3990,10 +4303,6 @@
             }
         }
 
-        /* ============================================================
-           ============ FUNÇÕES EXCEL (NOVAS) =========================
-           ============================================================ */
-
         function openExcelReportModal() {
             const modal = document.getElementById('excel-report-modal');
             if (!modal) return;
@@ -4246,23 +4555,14 @@
             workbook.created = new Date();
 
             const C = {
-                primary: 'FF241245',
-                secondary: 'FF3E2970',
-                accent: 'FFF47B20',
-                lightPurple: 'FFF0EDF7',
-                lightGray: 'FFF4F6F9',
-                successBg: 'FFD4EDDA',
-                successTx: 'FF155724',
-                dangerBg: 'FFF8D7DA',
-                dangerTx: 'FF721C24',
-                warningBg: 'FFFFF3CD',
-                warningTx: 'FF856404',
-                infoTx: 'FF0C5460',
-                orangeTx: 'FFD35400',
-                border: 'FFD1D1D1',
-                white: 'FFFFFFFF',
-                text: 'FF241245',
-                muted: 'FF666666'
+                primary: 'FF241245', secondary: 'FF3E2970', accent: 'FFF47B20',
+                lightPurple: 'FFF0EDF7', lightGray: 'FFF4F6F9',
+                successBg: 'FFD4EDDA', successTx: 'FF155724',
+                dangerBg: 'FFF8D7DA', dangerTx: 'FF721C24',
+                warningBg: 'FFFFF3CD', warningTx: 'FF856404',
+                infoTx: 'FF0C5460', orangeTx: 'FFD35400',
+                border: 'FFD1D1D1', white: 'FFFFFFFF',
+                text: 'FF241245', muted: 'FF666666'
             };
 
             const fontTitle = { name: 'Calibri', size: 20, bold: true, color: { argb: C.white } };
@@ -4284,7 +4584,6 @@
             const centerAlign = { horizontal: 'center', vertical: 'middle', wrapText: true };
             const leftAlign = { horizontal: 'left', vertical: 'middle', wrapText: true };
 
-            // ============ COLETA DE DADOS ============
             const allMachines = [];
             let totalMeasurements = 0;
             let approvedCount = 0, rejectedCount = 0;
@@ -4396,15 +4695,12 @@
             const uniqueProducts = [...uniqueProductsSet].sort();
 
             // ============ ABA 1: RESUMO ============
-            const ws1 = workbook.addWorksheet('Resumo', {
-                views: [{ showGridLines: false }]
-            });
+            const ws1 = workbook.addWorksheet('Resumo', { views: [{ showGridLines: false }] });
             ws1.columns = [
                 { width: 16 }, { width: 18 }, { width: 14 }, { width: 14 },
                 { width: 12 }, { width: 14 }, { width: 10 }, { width: 16 }
             ];
 
-            // Cabeçalho
             ws1.mergeCells('A1:H1');
             ws1.getCell('A1').value = 'DONA RITA EMBALAGENS';
             ws1.getCell('A1').font = fontTitle;
@@ -4419,7 +4715,6 @@
             ws1.getCell('A2').alignment = centerAlign;
             ws1.getRow(2).height = 22;
 
-            // Título
             ws1.mergeCells('A3:H3');
             ws1.getCell('A3').value = `Relatório ${label}`;
             ws1.getCell('A3').font = { name: 'Calibri', size: 14, bold: true, color: { argb: C.primary } };
@@ -4434,7 +4729,6 @@
 
             ws1.getRow(5).height = 8;
 
-            // Cards de resumo (layout 4 + 2)
             const stats = [
                 { label: 'MÁQUINAS', value: allMachines.length, color: C.primary },
                 { label: 'APROVADAS', value: approvedCount, color: C.successTx },
@@ -4482,7 +4776,6 @@
 
             let currentRow = 11;
 
-            // Produtos encontrados
             if (uniqueProducts.length > 0) {
                 ws1.mergeCells(`A${currentRow}:H${currentRow}`);
                 const pTitle = ws1.getCell(`A${currentRow}`);
@@ -4513,7 +4806,6 @@
                 currentRow++;
             }
 
-            // Resumo por produto + tipo (BASE e TAMPA separados)
             const productKeysForSummary = Object.keys(productSummary).sort((a, b) => {
                 const sa = productSummary[a];
                 const sb = productSummary[b];
@@ -4554,14 +4846,9 @@
 
                     const row = ws1.getRow(currentRow);
                     row.values = [
-                        s.productName,
-                        s.productType,
-                        s.machines,
-                        fmt2(pMin),
-                        fmt3(pAvg),
-                        fmt2(pMax),
-                        fmt2(s.tolMin),
-                        fmt2(s.tolMax)
+                        s.productName, s.productType, s.machines,
+                        fmt2(pMin), fmt3(pAvg), fmt2(pMax),
+                        fmt2(s.tolMin), fmt2(s.tolMax)
                     ];
                     row.eachCell((cell, colNumber) => {
                         cell.font = fontNormal;
@@ -4589,7 +4876,6 @@
                 currentRow++;
             }
 
-            // Tabela de máquinas
             ws1.mergeCells(`A${currentRow}:H${currentRow}`);
             const mTitle = ws1.getCell(`A${currentRow}`);
             mTitle.value = 'RESUMO DE MÁQUINAS';
@@ -4644,7 +4930,6 @@
             });
             currentRow++;
 
-            // Resumo diário (mensal)
             if (isMonthly) {
                 ws1.mergeCells(`A${currentRow}:H${currentRow}`);
                 const dTitle = ws1.getCell(`A${currentRow}`);
@@ -4676,12 +4961,9 @@
                     const row = ws1.getRow(currentRow);
                     row.values = [
                         date.split('-').reverse().join('/'),
-                        s.machines,
-                        s.measurements,
+                        s.machines, s.measurements,
                         dayAvg ? dayAvg.toFixed(3).replace('.', ',') : '—',
-                        s.approved,
-                        s.rejected,
-                        productsStr
+                        s.approved, s.rejected, productsStr
                     ];
                     row.eachCell((cell, colNumber) => {
                         if (colNumber <= 7) {
@@ -4698,7 +4980,6 @@
                 currentRow++;
             }
 
-            // Problemas
             if (problems.length > 0) {
                 ws1.mergeCells(`A${currentRow}:H${currentRow}`);
                 const prTitle = ws1.getCell(`A${currentRow}`);
@@ -4761,9 +5042,7 @@
             }
 
             // ============ ABA 2: MEDIÇÕES DETALHADAS ============
-            const ws2 = workbook.addWorksheet('Medições Detalhadas', {
-                views: [{ showGridLines: false }]
-            });
+            const ws2 = workbook.addWorksheet('Medições Detalhadas', { views: [{ showGridLines: false }] });
             ws2.columns = [
                 { width: 14 }, { width: 14 }, { width: 14 },
                 { width: 14 }, { width: 16 }, { width: 16 }
@@ -4886,8 +5165,7 @@
                         st.get(st.arrs[0]) !== null ? st.get(st.arrs[0]).toFixed(3).replace('.', ',') : '—',
                         st.get(st.arrs[1]) !== null ? st.get(st.arrs[1]).toFixed(3).replace('.', ',') : '—',
                         st.get(st.arrs[2]) !== null ? st.get(st.arrs[2]).toFixed(3).replace('.', ',') : '—',
-                        '',
-                        ''
+                        '', ''
                     ];
                     row.eachCell(cell => {
                         cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C.secondary } };
@@ -4902,11 +5180,8 @@
                 r2 += 2;
             });
 
-            // ============ ABA 3: PROBLEMAS (se houver) ============
             if (problems.length > 0) {
-                const ws3 = workbook.addWorksheet('Problemas', {
-                    views: [{ showGridLines: false }]
-                });
+                const ws3 = workbook.addWorksheet('Problemas', { views: [{ showGridLines: false }] });
                 ws3.columns = [
                     { width: 14 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 60 }
                 ];
@@ -4945,7 +5220,6 @@
                 });
             }
 
-            // ============ DOWNLOAD ============
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = URL.createObjectURL(blob);
@@ -4958,10 +5232,6 @@
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 2000);
         }
-
-        /* ============================================================
-           ============ FIM DAS FUNÇÕES EXCEL ==========================
-           ============================================================ */
 
         function buildReportHTML(reportData, label, isMonthly = false, includeCavityDetails = false) {
             return isMonthly
@@ -5621,14 +5891,13 @@
                 const pwd = prompt("🔒 Digite a senha para acessar a Configuração:");
                 if (pwd !== CONFIG_PASSWORD) {
                     if (pwd !== null) alert("❌ Senha incorreta!");
-                    // Reverte o estado visual do botão
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     const activePane = document.querySelector('.tab-pane.active');
                     if (activePane) {
                         const activeBtn = document.getElementById('tab-btn-' + activePane.id.replace('tab-', ''));
                         if (activeBtn) activeBtn.classList.add('active');
                     }
-                    return; // Impede a troca
+                    return;
                 }
             }
 
@@ -5640,6 +5909,12 @@
             else {
                 const fallback = document.getElementById('tab-btn-' + tabName);
                 if (fallback) fallback.classList.add('active');
+            }
+
+            if (tabName === 'galeria') {
+                const gd = document.getElementById('galeria-date');
+                if (gd && !gd.value) gd.value = today;
+                loadGaleria();
             }
         }
 
@@ -6133,6 +6408,11 @@
                     closeCurrentDataReport();
                     return;
                 }
+                const lb = document.getElementById('galeria-lightbox');
+                if (lb && lb.classList.contains('visible')) {
+                    closeGaleriaLightbox();
+                    return;
+                }
                 const pdfModal = document.getElementById('pdf-report-modal');
                 if (pdfModal && pdfModal.style.display === 'flex') {
                     closePdfReportModal();
@@ -6199,7 +6479,6 @@
             loadInspectorNamesFromCache();
             loadInspectorNames();
 
-            // Inicializa as opções iniciais do datalist e carrega as configurações
             const datalist = document.getElementById('product-list');
             if (datalist) {
                 initialProductOptions = Array.from(datalist.querySelectorAll('option')).map(opt => opt.value);
