@@ -7099,19 +7099,20 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
-            db.collection(COLLECTION_NAME)
-                .orderBy(firebase.firestore.FieldPath.documentId(), 'desc')
-                .limit(1)
-                .onSnapshot((snap) => {
-                    if (snap.empty) {
-                        if (dateEl) dateEl.textContent = '—';
-                        renderLive(null);
-                        return;
-                    }
-                    const latestDoc = snap.docs[0];
-                    if (dateEl) dateEl.textContent = latestDoc.id.split('-').reverse().join('/');
-                    renderLive(latestDoc.data());
-                }, (err) => {
+            db.collection(COLLECTION_NAME).onSnapshot((snap) => {
+                let latestDoc = null;
+                let latestId = '';
+                snap.forEach(doc => {
+                    if (doc.id > latestId) { latestId = doc.id; latestDoc = doc; }
+                });
+                if (!latestDoc) {
+                    if (dateEl) dateEl.textContent = '—';
+                    renderLive(null);
+                    return;
+                }
+                if (dateEl) dateEl.textContent = latestId.split('-').reverse().join('/');
+                renderLive(latestDoc.data());
+            }, (err) => {
                     console.error(err);
                     const listEl = document.getElementById('live-list');
                     if (listEl) listEl.innerHTML = `<div class="live-empty">❌ Erro ao conectar: ${escapeHtml(err && err.message ? err.message : err)}</div>`;
