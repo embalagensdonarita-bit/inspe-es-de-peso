@@ -10,8 +10,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary-color: #241245;
@@ -703,6 +705,30 @@
             background: rgba(255, 255, 255, 0.35);
             transform: rotate(90deg);
         }
+        .fullscreen-report-header .report-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .fullscreen-report-header .btn-screenshot {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .fullscreen-report-header .btn-screenshot:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: #fff;
+        }
         .report-content-area { padding: 30px; }
         .dash-summary-cards {
             display: grid;
@@ -826,7 +852,7 @@
         .range-chart-track-wrapper {
             flex: 1;
             position: relative;
-            height: 40px;
+            height: 58px;
             min-width: 200px;
         }
         .range-chart-track {
@@ -867,6 +893,59 @@
             opacity: 0.35;
             transform: translateX(-50%);
             z-index: 1;
+        }
+        .range-chart-tol-label {
+            position: absolute;
+            top: -26px;
+            transform: translateX(-50%);
+            font-size: 8.5px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #fff;
+            padding: 1px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            z-index: 3;
+            line-height: 1.4;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .range-chart-tol-label.min { background: #e67e22; }
+        .range-chart-tol-label.med { background: #6b21a8; }
+        .range-chart-tol-label.max { background: #c0392b; }
+        .range-chart-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 10.5px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid transparent;
+        }
+        .range-chart-status.ok { background: #d4edda; color: #155724; border-color: #b7dfc0; }
+        .range-chart-status.below,
+        .range-chart-status.above { background: #fdecea; color: #b71c1c; border-color: #f5b7b1; }
+        .dash-alert-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .dash-alert-banner.warning { background: #fff4e5; border: 1px solid #ffd8a8; color: #7a4a00; }
+        .dash-alert-banner.ok { background: #e8f7ee; border: 1px solid #b7dfc0; color: #155724; }
+        .dash-alert-chip {
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.06);
+            font-weight: 700;
+            font-size: 11px;
         }
 
         .range-chart-values {
@@ -1616,13 +1695,264 @@
             background: rgba(255,255,255,0.35);
             transform: rotate(90deg);
         }
+
+        /* ===== QR Code no cabeçalho ===== */
+        .header-qr {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 7px 9px 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            position: relative;
+            z-index: 1;
+        }
+        #qr-code-container {
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0;
+        }
+        #qr-code-container img,
+        #qr-code-container canvas {
+            width: 90px !important;
+            height: 90px !important;
+            image-rendering: pixelated;
+        }
+        .header-qr .qr-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #241245;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .header-qr .qr-hint {
+            font-size: 8px;
+            color: #888;
+            line-height: 1.15;
+            text-align: center;
+        }
+
+        /* ===== Painel ao Vivo (modo live) ===== */
+        #live-view {
+            font-family: 'Roboto', sans-serif;
+            background: #f4f2fa;
+            min-height: 100vh;
+            color: #241245;
+        }
+        .live-header {
+            background: linear-gradient(135deg, #241245 0%, #3e2970 100%);
+            color: #fff;
+            padding: 22px 18px 18px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .live-brand {
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+        .live-sub {
+            font-size: 12px;
+            color: #c9b5ff;
+            margin-top: 2px;
+        }
+        .live-meta {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 11px;
+            font-size: 11px;
+            color: #e0d8f5;
+            flex-wrap: wrap;
+        }
+        .live-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #28c76f;
+            box-shadow: 0 0 0 0 rgba(40,199,111,0.6);
+            animation: livePulse 1.6s infinite;
+            display: inline-block;
+        }
+        @keyframes livePulse {
+            0% { box-shadow: 0 0 0 0 rgba(40,199,111,0.6); }
+            70% { box-shadow: 0 0 0 8px rgba(40,199,111,0); }
+            100% { box-shadow: 0 0 0 0 rgba(40,199,111,0); }
+        }
+        .live-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 14px 14px 4px;
+        }
+        .live-sum-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 11px 6px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .live-sum-card .num {
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .live-sum-card .lbl {
+            font-size: 9px;
+            color: #777;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .live-list {
+            padding: 10px 14px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .live-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 5px solid #ccc;
+        }
+        .live-card.below { border-left-color: #d32f2f; }
+        .live-card.above { border-left-color: #d32f2f; }
+        .live-card.ok { border-left-color: #28a745; }
+        .live-card .lc-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .live-card .lc-machine {
+            font-size: 17px;
+            font-weight: 800;
+            color: #241245;
+        }
+        .live-card .lc-product {
+            font-size: 12px;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+        .live-badge {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            padding: 4px 9px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .live-badge.ok { background: #d4edda; color: #155724; }
+        .live-badge.below, .live-badge.above { background: #fdecea; color: #b71c1c; }
+        .live-card .lc-values {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 12px;
+        }
+        .live-card .lc-avg { flex: 0 0 auto; }
+        .live-card .lc-avg .v {
+            font-size: 26px;
+            font-weight: 800;
+            color: #241245;
+            line-height: 1;
+        }
+        .live-card .lc-avg .t {
+            font-size: 9px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .live-card .lc-ref {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .live-ref-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+        .live-ref-row .k { color: #888; font-weight: 600; }
+        .live-ref-row .v { font-weight: 700; color: #241245; }
+        .live-bar {
+            margin-top: 14px;
+            position: relative;
+            height: 34px;
+        }
+        .live-bar .track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 8px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        .live-bar .fill {
+            position: absolute;
+            top: 8px;
+            height: 8px;
+            border-radius: 4px;
+        }
+        .live-bar .marker {
+            position: absolute;
+            top: 8px;
+            transform: translate(-50%, -50%);
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            background: #6b21a8;
+        }
+        .live-bar .end-labels {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #888;
+            font-weight: 600;
+        }
+        .live-empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #777;
+            font-size: 14px;
+        }
+        .live-footer {
+            padding: 16px;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+        }
     </style>
 </head>
 <body>
+    <div id="live-view" style="display:none;"></div>
     <header>
         <div class="logo-area">
             <h1>Dona Rita Embalagens</h1>
             <span>Sistema de Controle de Qualidade</span>
+        </div>
+        <div class="header-qr" id="header-qr">
+            <div id="qr-code-container"></div>
+            <span class="qr-label">Painel ao Vivo</span>
+            <span class="qr-hint">Aponte a câmera</span>
         </div>
         <div class="header-info">
             <label>📅 Data da Inspeção:</label>
@@ -3738,9 +4068,12 @@
                     <div class="fullscreen-report-modal">
                         <div class="fullscreen-report-header">
                             <h2>📊 RELATÓRIO DE PESOS ATUAIS</h2>
-                            <button type="button" class="close-fullscreen" onclick="closeCurrentDataReport()" title="Fechar">✕</button>
+                            <div class="report-actions">
+                                <button type="button" class="btn-screenshot" onclick="captureCurrentDataReport()" title="Baixar imagem (print) do relatório em alta resolução">📸 Baixar Imagem</button>
+                                <button type="button" class="close-fullscreen" onclick="closeCurrentDataReport()" title="Fechar">✕</button>
+                            </div>
                         </div>
-                        <div class="report-content-area">
+                        <div class="report-content-area" id="report-capture-area">
                             <div style="text-align:center; margin-bottom:20px;">
                                 <span style="font-size:14px; color:#555;">Data: ${today.split('-').reverse().join('/')} - Hora: ${new Date().toLocaleTimeString()}</span>
                             </div>`;
@@ -3780,13 +4113,35 @@
                 html += `</div>`;
             }
 
+            html += `<div id="report-print-area">`;
             html += `<div class="dash-section-title">📊 Média Geral por Máquina — Referência (linha 1) e Medidos (linha 2)</div>`;
             html += `<div class="range-chart-legend">
                 <span><span class="dot" style="background:linear-gradient(135deg,#e9d5ff,#3b0764);"></span> Faixa mín–máx (medidos)</span>
                 <span><span class="dot" style="background:#6b21a8;"></span> Média (medidos)</span>
                 <span><span style="display:inline-block; width:2px; height:16px; background:#241245; opacity:0.35;"></span> Limite de tolerância</span>
-                <span>📌 Ref. (produto) &nbsp;|&nbsp; 🔻 🎯 🔺 Medidos</span>
+                <span>📌 MIN / MED / MAX (produto) &nbsp;|&nbsp; 🔻 🎯 🔺 Medidos</span>
             </div>`;
+
+            const belowMin = [];
+            const withinFaixa = [];
+            const aboveMax = [];
+            machines.forEach(m => {
+                const a = m.totalAverage;
+                if (a === null || a === undefined || isNaN(a)) return;
+                const tMin = parseFloat(String(m.tolMin).replace(',', '.'));
+                const tMax = parseFloat(String(m.tolMax).replace(',', '.'));
+                if (!isNaN(tMin) && a < tMin) belowMin.push(m.machine || '?');
+                else if (!isNaN(tMax) && a > tMax) aboveMax.push(m.machine || '?');
+                else withinFaixa.push(m.machine || '?');
+            });
+            const hasProblem = belowMin.length > 0 || aboveMax.length > 0;
+            html += `<div class="dash-alert-banner ${hasProblem ? 'warning' : 'ok'}">
+                <span><strong>${hasProblem ? 'Atenção:' : 'Resumo:'}</strong> ${belowMin.length} abaixo do mínimo · ${withinFaixa.length} dentro da faixa · ${aboveMax.length} acima do máximo.</span>
+                ${belowMin.map(x => `<span class="dash-alert-chip">🔻 ${escapeHtml(x)}</span>`).join('')}
+                ${withinFaixa.map(x => `<span class="dash-alert-chip">✅ ${escapeHtml(x)}</span>`).join('')}
+                ${aboveMax.map(x => `<span class="dash-alert-chip">🔺 ${escapeHtml(x)}</span>`).join('')}
+            </div>`;
+
             html += `<div class="bar-chart-container">`;
 
             machines.forEach(m => {
@@ -3840,23 +4195,29 @@
 
                 const markerColor = '#6b21a8';
 
+                let statusClass = 'ok';
+                let statusIcon = '✅';
+                let statusText = 'DENTRO DA FAIXA';
+                if (!isNaN(tolMin) && avg < tolMin) { statusClass = 'below'; statusIcon = ''; statusText = 'ABAIXO DO MÍNIMO'; }
+                else if (!isNaN(tolMax) && avg > tolMax) { statusClass = 'above'; statusIcon = '⛔'; statusText = 'ACIMA DO MÁXIMO'; }
+
                 const refMinHTML = !isNaN(tolMin)
-                    ? `<span class="rv rv-ref-min" title="Mínimo da Referência (Produto)">📌 Ref 🔻 ${tolMin.toFixed(2).replace('.',',')}</span>`
+                    ? `<span class="rv rv-ref-min" title="Mínimo (Referência do Produto)">MIN 🔻 ${tolMin.toFixed(2).replace('.',',')}</span>`
                     : '';
                 const refMidHTML = !isNaN(tolMid)
-                    ? `<span class="rv rv-ref-mid" title="Média da Referência (Ideal do Produto)">📌 Ref 🎯 ${tolMid.toFixed(2).replace('.',',')}</span>`
+                    ? `<span class="rv rv-ref-mid" title="Média / Ideal (Referência do Produto)">MED 🎯 ${tolMid.toFixed(2).replace('.',',')}</span>`
                     : '';
                 const refMaxHTML = !isNaN(tolMax)
-                    ? `<span class="rv rv-ref-max" title="Máximo da Referência (Produto)">📌 Ref 🔺 ${tolMax.toFixed(2).replace('.',',')}</span>`
+                    ? `<span class="rv rv-ref-max" title="Máximo (Referência do Produto)">MAX 🔺 ${tolMax.toFixed(2).replace('.',',')}</span>`
                     : '';
 
                 html += `<div class="range-chart-row">
                     <div class="range-chart-label">${escapeHtml(m.machine || '?')}</div>
                     <div class="range-chart-track-wrapper">
                         <div class="range-chart-track">
-                            ${tolMinPct !== null ? `<div class="range-chart-tol" style="left:${tolMinPct}%;" title="Mín tolerância: ${m.tolMin}"></div>` : ''}
-                            ${tolMidPct !== null ? `<div class="range-chart-tol" style="left:${tolMidPct}%; background:#6b21a8; opacity:0.55;" title="Ideal: ${m.tolMid}"></div>` : ''}
-                            ${tolMaxPct !== null ? `<div class="range-chart-tol" style="left:${tolMaxPct}%;" title="Máx tolerância: ${m.tolMax}"></div>` : ''}
+                            ${tolMinPct !== null ? `<div class="range-chart-tol" style="left:${tolMinPct}%;" title="Mínimo: ${m.tolMin}"></div><div class="range-chart-tol-label min" style="left:${tolMinPct}%;">MIN</div>` : ''}
+                            ${tolMidPct !== null ? `<div class="range-chart-tol" style="left:${tolMidPct}%; background:#6b21a8; opacity:0.55;" title="Média/Ideal: ${m.tolMid}"></div><div class="range-chart-tol-label med" style="left:${tolMidPct}%;">MED</div>` : ''}
+                            ${tolMaxPct !== null ? `<div class="range-chart-tol" style="left:${tolMaxPct}%;" title="Máximo: ${m.tolMax}"></div><div class="range-chart-tol-label max" style="left:${tolMaxPct}%;">MAX</div>` : ''}
                             <div class="range-chart-range" style="left:${minPct}%; width:${Math.max(maxPct - minPct, 1.5)}%;"></div>
                             <div class="range-chart-marker" style="left:${avgPct}%; background:${markerColor};" title="Média medida: ${avg.toFixed(3).replace('.',',')}"></div>
                         </div>
@@ -3868,11 +4229,12 @@
                             ${refMaxHTML}
                         </div>
                         <div class="row-values">
-                            <span class="rv rv-min" title="Mínimo medido">🔻 ${dataMin.toFixed(2).replace('.',',')}</span>
-                            <span class="rv rv-avg" title="Média medida">🎯 ${avg.toFixed(3).replace('.',',')}</span>
-                            <span class="rv rv-max" title="Máximo medido">🔺 ${dataMax.toFixed(2).replace('.',',')}</span>
+                            <span class="rv rv-min" title="Mínimo medido">MÍN 🔻 ${dataMin.toFixed(2).replace('.',',')}</span>
+                            <span class="rv rv-avg" title="Média medida">MÉD 🎯 ${avg.toFixed(3).replace('.',',')}</span>
+                            <span class="rv rv-max" title="Máximo medido">MÁX 🔺 ${dataMax.toFixed(2).replace('.',',')}</span>
                         </div>
                     </div>
+                    <span class="range-chart-status ${statusClass}" title="${statusText}">${statusIcon} ${statusText}</span>
                     <span style="font-size:11px;color:#888;min-width:70px;">${escapeHtml(m.product || 'sem produto')}</span>
                 </div>`;
             });
@@ -3909,6 +4271,7 @@
                 </tr>`;
             });
             html += `</tbody></table></div>`;
+            html += `</div>`;
 
             html += `<div class="dash-section-title">🔍 Detalhamento das Medições por Máquina</div>`;
             machines.forEach(m => {
@@ -3972,6 +4335,49 @@
             document.body.style.overflow = '';
             if (document.fullscreenElement) {
                 document.exitFullscreen().catch(err => console.log('Erro ao sair do fullscreen:', err));
+            }
+        }
+
+        async function captureCurrentDataReport() {
+            const el = document.getElementById('report-print-area') || document.getElementById('report-capture-area');
+            if (!el) { alert('Relatório não encontrado.'); return; }
+            showLoading('Gerando imagem do relatório...');
+            try {
+                try { await document.fonts.ready; } catch (e) {}
+
+                let dataUrl = null;
+                if (typeof htmlToImage !== 'undefined' && typeof htmlToImage.toPng === 'function') {
+                    dataUrl = await htmlToImage.toPng(el, {
+                        pixelRatio: 3,
+                        backgroundColor: '#ffffff',
+                        cacheBust: true
+                    });
+                } else if (typeof html2canvas === 'function') {
+                    const canvas = await html2canvas(el, {
+                        scale: 3,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        windowWidth: el.scrollWidth,
+                        windowHeight: el.scrollHeight
+                    });
+                    dataUrl = canvas.toDataURL('image/png');
+                }
+
+                if (!dataUrl) throw new Error('Nenhuma biblioteca de captura disponível.');
+
+                const dateStr = today.replace(/-/g, '');
+                const a = document.createElement('a');
+                a.download = `relatorio-pesos-${dateStr}.png`;
+                a.href = dataUrl;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } catch (err) {
+                console.error(err);
+                alert('❌ Falha ao gerar a imagem do relatório: ' + (err && err.message ? err.message : err));
+            } finally {
+                hideLoading();
             }
         }
 
@@ -6465,6 +6871,7 @@
         });
 
         window.addEventListener('load', function() {
+            if (isLiveMode) return;
             setDateForInputs();
             addMachineCard();
             const hs = document.getElementById('history-section');
@@ -6498,7 +6905,222 @@
                     lastAutoFilledMachine = null;
                 });
             }
+
+            generateLiveQR();
         });
+
+        // ==================== MODO AO VIVO / QR CODE ====================
+        const isLiveMode = (function() {
+            try {
+                const p = new URLSearchParams(window.location.search);
+                return p.has('live') || window.location.hash === '#live';
+            } catch (e) { return false; }
+        })();
+
+        function getLiveURL() {
+            const u = new URL(window.location.href);
+            u.search = '';
+            u.hash = '';
+            u.searchParams.set('live', '1');
+            return u.toString();
+        }
+
+        function generateLiveQR() {
+            if (isLiveMode) return;
+            const container = document.getElementById('qr-code-container');
+            if (!container) return;
+            try {
+                const url = getLiveURL();
+                container.innerHTML = '';
+                if (typeof QRCode === 'function') {
+                    new QRCode(container, {
+                        text: url,
+                        width: 90,
+                        height: 90,
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else {
+                    container.innerHTML = '<span style="font-size:9px;color:#241245;text-align:center;line-height:1.2;">QR<br>indisponível</span>';
+                }
+                const link = document.getElementById('header-qr');
+                if (link) {
+                    link.title = 'Aponte a câmera do celular para abrir o painel ao vivo.\n' + url;
+                    link.style.cursor = 'pointer';
+                    link.addEventListener('click', function() { window.open(url, '_blank'); });
+                }
+            } catch (e) { console.error('Erro ao gerar QR:', e); }
+        }
+
+        function flattenLiveMachines(dateData) {
+            const list = [];
+            if (!dateData || !dateData.inspectors) return list;
+            for (const inspKey in dateData.inspectors) {
+                const insp = dateData.inspectors[inspKey] || {};
+                const products = insp.products || {};
+                for (const prodKey in products) {
+                    const arr = products[prodKey] || [];
+                    arr.forEach(m => { if (m && m.machine) list.push(Object.assign({}, m, { inspector: inspKey })); });
+                }
+            }
+            return list;
+        }
+
+        function parseNum(v) {
+            if (v === null || v === undefined || v === '') return NaN;
+            const n = parseFloat(String(v).replace(',', '.'));
+            return isNaN(n) ? NaN : n;
+        }
+
+        function fmt(n, d) {
+            if (isNaN(n)) return '—';
+            return n.toFixed(d).replace('.', ',');
+        }
+
+        function classifyLive(avg, tMin, tMax) {
+            if (isNaN(avg)) return 'ok';
+            if (!isNaN(tMin) && avg < tMin) return 'below';
+            if (!isNaN(tMax) && avg > tMax) return 'above';
+            return 'ok';
+        }
+
+        function renderLive(dateData) {
+            const list = flattenLiveMachines(dateData);
+            const summary = document.getElementById('live-summary');
+            const listEl = document.getElementById('live-list');
+            if (!summary || !listEl) return;
+
+            let below = 0, ok = 0, above = 0;
+            list.forEach(m => {
+                const c = classifyLive(parseNum(m.totalAverage), parseNum(m.tolMin), parseNum(m.tolMax));
+                if (c === 'below') below++;
+                else if (c === 'above') above++;
+                else ok++;
+            });
+
+            summary.innerHTML =
+                `<div class="live-sum-card"><div class="num">${list.length}</div><div class="lbl">Máquinas</div></div>` +
+                `<div class="live-sum-card"><div class="num" style="color:#d32f2f;">${below}</div><div class="lbl">Abaixo</div></div>` +
+                `<div class="live-sum-card"><div class="num" style="color:#28a745;">${ok}</div><div class="lbl">Dentro</div></div>` +
+                `<div class="live-sum-card"><div class="num" style="color:#d32f2f;">${above}</div><div class="lbl">Acima</div></div>`;
+
+            if (list.length === 0) {
+                listEl.innerHTML = `<div class="live-empty">📭 Nenhuma medição lançada ainda.<br><span style="font-size:12px;">Assim que salvar no sistema, aparece aqui na hora.</span></div>`;
+                const lu = document.getElementById('live-last-update');
+                if (lu) lu.textContent = '—';
+                return;
+            }
+
+            listEl.innerHTML = list.map(m => {
+                const avg = parseNum(m.totalAverage);
+                const tMin = parseNum(m.tolMin);
+                const tMid = parseNum(m.tolMid);
+                const tMax = parseNum(m.tolMax);
+                const cls = classifyLive(avg, tMin, tMax);
+
+                let pct = 50;
+                let showBar = false;
+                if (!isNaN(avg) && !isNaN(tMin) && !isNaN(tMax) && tMax > tMin) {
+                    pct = Math.max(0, Math.min(100, ((avg - tMin) / (tMax - tMin)) * 100));
+                    showBar = true;
+                }
+
+                const badgeText = cls === 'below' ? 'ABAIXO DO MÍNIMO' : (cls === 'above' ? 'ACIMA DO MÁXIMO' : 'DENTRO DA FAIXA');
+                const badge = `<span class="live-badge ${cls}">${badgeText}</span>`;
+
+                const refRows =
+                    `<div class="live-ref-row"><span class="k">MIN</span><span class="v">${fmt(tMin,2)}</span></div>` +
+                    `<div class="live-ref-row"><span class="k">MED</span><span class="v">${fmt(tMid,3)}</span></div>` +
+                    `<div class="live-ref-row"><span class="k">MAX</span><span class="v">${fmt(tMax,2)}</span></div>`;
+
+                const bar = showBar
+                    ? `<div class="live-bar">
+                        <div class="track"></div>
+                        <div class="fill" style="left:0; width:${pct}%; background:${cls === 'ok' ? 'linear-gradient(90deg,#a78bfa,#6b21a8)' : '#d32f2f'};"></div>
+                        <div class="marker" style="left:${pct}%;"></div>
+                        <div class="end-labels"><span>MIN ${fmt(tMin,2)}</span><span>MAX ${fmt(tMax,2)}</span></div>
+                      </div>`
+                    : '';
+
+                return `<div class="live-card ${cls}">
+                    <div class="lc-top">
+                        <div>
+                            <div class="lc-machine">${escapeHtml(m.machine)}</div>
+                            <div class="lc-product">${escapeHtml(m.product || '—')}</div>
+                        </div>
+                        ${badge}
+                    </div>
+                    <div class="lc-values">
+                        <div class="lc-avg">
+                            <div class="v">${fmt(avg,3)}</div>
+                            <div class="t">Média</div>
+                        </div>
+                        <div class="lc-ref">${refRows}</div>
+                    </div>
+                    ${bar}
+                </div>`;
+            }).join('');
+
+            const lu = document.getElementById('live-last-update');
+            if (lu) lu.textContent = new Date().toLocaleTimeString('pt-BR');
+        }
+
+        function updateLiveClock() {
+            const el = document.getElementById('live-clock');
+            if (el) el.textContent = new Date().toLocaleTimeString('pt-BR');
+        }
+
+        function startLiveView() {
+            document.body.style.padding = '0';
+            document.body.style.background = '#f4f2fa';
+            const header = document.querySelector('header');
+            const tabBar = document.querySelector('.tab-bar');
+            if (header) header.style.display = 'none';
+            if (tabBar) tabBar.style.display = 'none';
+            document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+            const loading = document.getElementById('global-loading');
+            if (loading) loading.style.display = 'none';
+
+            const lv = document.getElementById('live-view');
+            if (!lv) return;
+            lv.style.display = 'block';
+            lv.innerHTML =
+                `<div class="live-header">
+                    <div class="live-brand">Dona Rita Embalagens</div>
+                    <div class="live-sub">Painel de Qualidade ao Vivo</div>
+                    <div class="live-meta">
+                        <span class="live-dot"></span> Atualização em tempo real · Última medição: <span id="live-date">—</span> · <span id="live-clock">--:--:--</span>
+                    </div>
+                </div>
+                <div class="live-summary" id="live-summary"></div>
+                <div class="live-list" id="live-list"><div class="live-empty">🔄 Conectando…</div></div>
+                <div class="live-footer">Última atualização: <span id="live-last-update">—</span></div>`;
+
+            const dateEl = document.getElementById('live-date');
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+
+            db.collection(COLLECTION_NAME)
+                .orderBy(firebase.firestore.FieldPath.documentId(), 'desc')
+                .limit(1)
+                .onSnapshot((snap) => {
+                    if (snap.empty) {
+                        if (dateEl) dateEl.textContent = '—';
+                        renderLive(null);
+                        return;
+                    }
+                    const latestDoc = snap.docs[0];
+                    if (dateEl) dateEl.textContent = latestDoc.id.split('-').reverse().join('/');
+                    renderLive(latestDoc.data());
+                }, (err) => {
+                    console.error(err);
+                    const listEl = document.getElementById('live-list');
+                    if (listEl) listEl.innerHTML = `<div class="live-empty">❌ Erro ao conectar: ${escapeHtml(err && err.message ? err.message : err)}</div>`;
+                });
+        }
+
+        if (isLiveMode) {
+            startLiveView();
+        }
     </script>
 </body>
 </html>
