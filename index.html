@@ -2304,6 +2304,14 @@
                 <textarea id="config-tolerances-input" class="config-textarea" placeholder="Exemplo:&#10;11,85	12,50	13,13&#10;9,33	9,53	9,72"></textarea>
             </div>
         </div>
+        <div style="margin-bottom: 20px; padding: 16px; background: #f8f7fc; border-radius: 8px; border: 1px dashed #d5cfe8;">
+            <label style="display:block; font-weight:700; margin-bottom:6px; color:var(--text-dark);">🔗 URL do QR Code (Painel ao Vivo)</label>
+            <small style="display:block; margin-bottom:10px; color:#666;">Cole aqui o endereço para onde o QR deve levar ao ser escaneado. Deixe vazio para usar o link atual automaticamente.</small>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <input type="text" id="config-live-url" placeholder="Ex.: https://meu-painel.netlify.app" style="flex:1; min-width:280px; padding:10px 12px; border:1.5px solid #ccc; border-radius:6px; font-size:13px; background:#fff;">
+                <button type="button" class="btn btn-accent" onclick="saveLiveUrl()">💾 Salvar Endereço</button>
+            </div>
+        </div>
         <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 20px;">
             <button type="button" class="btn btn-danger" onclick="clearProductConfigForm()">🗑️ Limpar Lista</button>
             <button type="button" class="btn btn-outline" onclick="cancelProductConfig()">Cancelar</button>
@@ -4361,13 +4369,13 @@
                 let dataUrl = null;
                 if (typeof htmlToImage !== 'undefined' && typeof htmlToImage.toPng === 'function') {
                     dataUrl = await htmlToImage.toPng(el, {
-                        pixelRatio: 3,
+                        pixelRatio: 4,
                         backgroundColor: '#ffffff',
                         cacheBust: true
                     });
                 } else if (typeof html2canvas === 'function') {
                     const canvas = await html2canvas(el, {
-                        scale: 3,
+                        scale: 4,
                         useCORS: true,
                         backgroundColor: '#ffffff',
                         logging: false,
@@ -6920,6 +6928,7 @@
             }
 
             generateLiveQR();
+            loadLiveUrl();
         });
 
         // ==================== MODO AO VIVO / QR CODE ====================
@@ -6930,12 +6939,41 @@
             } catch (e) { return false; }
         })();
 
+        const LIVE_URL_KEY = 'dr_live_url';
+
         function getLiveURL() {
+            try {
+                let custom = (localStorage.getItem(LIVE_URL_KEY) || '').trim();
+                if (custom) {
+                    if (custom.indexOf('live=') === -1 && custom.indexOf('#live') === -1) {
+                        custom += (custom.indexOf('?') === -1 ? '?' : '&') + 'live=1';
+                    }
+                    return custom;
+                }
+            } catch (e) {}
             const u = new URL(window.location.href);
             u.search = '';
             u.hash = '';
             u.searchParams.set('live', '1');
             return u.toString();
+        }
+
+        function loadLiveUrl() {
+            const input = document.getElementById('config-live-url');
+            if (!input) return;
+            try { input.value = localStorage.getItem(LIVE_URL_KEY) || ''; } catch (e) {}
+        }
+
+        function saveLiveUrl() {
+            const input = document.getElementById('config-live-url');
+            if (!input) return;
+            const url = (input.value || '').trim();
+            try {
+                if (url) localStorage.setItem(LIVE_URL_KEY, url);
+                else localStorage.removeItem(LIVE_URL_KEY);
+            } catch (e) {}
+            generateLiveQR();
+            alert(url ? `✅ QR Code atualizado para:\n${url}` : '✅ QR Code voltou a usar o link atual automaticamente.');
         }
 
         function generateLiveQR() {
