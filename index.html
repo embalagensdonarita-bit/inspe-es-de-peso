@@ -3583,6 +3583,27 @@
             return grouped;
         }
 
+        async function saveLiveSnapshot(date, machines) {
+            try {
+                const liveData = {
+                    date: date,
+                    savedAt: new Date().toISOString(),
+                    total: machines.length,
+                    machines: machines.map(m => ({
+                        machine: m.machine,
+                        product: m.product,
+                        totalAverage: m.totalAverage,
+                        tolMin: m.tolMin,
+                        tolMid: m.tolMid,
+                        tolMax: m.tolMax
+                    }))
+                };
+                await db.collection('configuracoes').doc('painel_ao_vivo').set(liveData, { merge: true });
+            } catch (e) {
+                console.error('Erro ao salvar snapshot do painel ao vivo:', e);
+            }
+        }
+
         async function saveDailyData() {
             if (isSaving) return;
             const date = document.getElementById('selected-date').value;
@@ -3615,22 +3636,15 @@
                 }
 
                 for (const inspKey in newDateData.inspectors) {
-                    if (!finalData.inspectors[inspKey]) finalData.inspectors[inspKey] = { products: {} };
-                    if (!finalData.inspectors[inspKey].products) finalData.inspectors[inspKey].products = {};
-                    for (const prodKey in newDateData.inspectors[inspKey].products) {
-                        if (!finalData.inspectors[inspKey].products[prodKey]) {
-                            finalData.inspectors[inspKey].products[prodKey] = [];
-                        }
-                        finalData.inspectors[inspKey].products[prodKey] = mergeMachineArrays(
-                            finalData.inspectors[inspKey].products[prodKey],
-                            newDateData.inspectors[inspKey].products[prodKey]
-                        );
-                    }
+                    const insp = finalData.inspectors[inspKey] || {};
+                    insp.products = newDateData.inspectors[inspKey].products;
+                    finalData.inspectors[inspKey] = insp;
                 }
 
                 applyPendingRemovals(finalData, machines);
 
                 await docRef.set(finalData);
+                await saveLiveSnapshot(date, machines);
                 pendingRemovals = [];
                 hasUnsavedChanges = false;
 
@@ -3685,16 +3699,15 @@
                 }
 
                 for (const inspKey in newDateData.inspectors) {
-                    if (!finalData.inspectors[inspKey]) finalData.inspectors[inspKey] = { products: {} };
-                    if (!finalData.inspectors[inspKey].products) finalData.inspectors[inspKey].products = {};
-                    for (const prodKey in newDateData.inspectors[inspKey].products) {
-                        finalData.inspectors[inspKey].products[prodKey] = newDateData.inspectors[inspKey].products[prodKey];
-                    }
+                    const insp = finalData.inspectors[inspKey] || {};
+                    insp.products = newDateData.inspectors[inspKey].products;
+                    finalData.inspectors[inspKey] = insp;
                 }
 
                 applyPendingRemovals(finalData, machines);
 
                 await docRef.set(finalData);
+                await saveLiveSnapshot(loadedDate, machines);
                 pendingRemovals = [];
                 hasUnsavedChanges = false;
 
@@ -6984,7 +6997,7 @@
         }
 
         function renderLive(dateData) {
-            const list = flattenLiveMachines(dateData);
+            const list = Array.isArray(dateData) ? dateData : flattenLiveMachines(dateData);
             const summary = document.getElementById('live-summary');
             const listEl = document.getElementById('live-list');
             if (!summary || !listEl) return;
@@ -7099,19 +7112,15 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
-            db.collection(COLLECTION_NAME).onSnapshot((snap) => {
-                let latestDoc = null;
-                let latestId = '';
-                snap.forEach(doc => {
-                    if (doc.id > latestId) { latestId = doc.id; latestDoc = doc; }
-                });
-                if (!latestDoc) {
+            db.collection('configuracoes').doc('painel_ao_vivo').onSnapshot((snap) => {
+                if (!snap.exists) {
                     if (dateEl) dateEl.textContent = '—';
-                    renderLive(null);
+                    renderLive([]);
                     return;
                 }
-                if (dateEl) dateEl.textContent = latestId.split('-').reverse().join('/');
-                renderLive(latestDoc.data());
+                const data = snap.data() || {};
+                if (dateEl) dateEl.textContent = (data.date || '').split('-').reverse().join('/');
+                renderLive(Array.isArray(data.machines) ? data.machines : []);
             }, (err) => {
                     console.error(err);
                     const listEl = document.getElementById('live-list');
