@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root {
             --primary-color: #241245;
@@ -1940,6 +1941,127 @@
             font-size: 11px;
             color: #999;
         }
+        .live-view-toggle {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 14px 14px 4px;
+        }
+        .lv-toggle {
+            padding: 9px 20px;
+            border-radius: 22px;
+            border: 1.5px solid #d5cce8;
+            background: #fff;
+            color: #241245;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+        }
+        .lv-toggle:hover { transform: translateY(-1px); }
+        .lv-toggle.active {
+            background: #241245;
+            color: #fff;
+            border-color: #241245;
+            box-shadow: 0 4px 12px rgba(36,18,69,0.35);
+        }
+        .live-3d {
+            position: relative;
+            width: calc(100% - 28px);
+            height: calc(100vh - 260px);
+            min-height: 380px;
+            margin: 12px 14px 30px;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+            background: #0b0a1a;
+        }
+        .live-3d canvas { display: block; }
+        .live-3d .hint {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 11px;
+            padding: 7px 14px;
+            border-radius: 20px;
+            pointer-events: none;
+            white-space: nowrap;
+            max-width: calc(100% - 20px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .live-3d .live-empty {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #cfc7e8;
+        }
+        .live3d-info {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 300px;
+            max-width: calc(100% - 28px);
+            max-height: calc(100% - 28px);
+            overflow-y: auto;
+            background: rgba(18, 15, 38, 0.97);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            color: #fff;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+            display: none;
+            z-index: 20;
+            font-size: 13px;
+        }
+        .live3d-info.show { display: block; }
+        .live3d-info .li-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.14);
+            border: none;
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 15px;
+            line-height: 1;
+        }
+        .live3d-info .li-title { font-size: 19px; font-weight: 800; margin-bottom: 2px; padding-right: 26px; }
+        .live3d-info .li-sub { font-size: 12px; color: #cfc7e8; margin-bottom: 12px; }
+        .live3d-info .li-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .live3d-info .li-row .k { color: #cfc7e8; }
+        .live3d-info .li-row .v { font-weight: 700; text-align: right; }
+        .live3d-info .li-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .live3d-info .li-problema {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 59, 92, 0.18);
+            color: #ffb3c0;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -3600,6 +3722,16 @@
                     machines: machines.map(m => ({
                         machine: m.machine,
                         product: m.product,
+                        productType: m.productType,
+                        inspector: m.inspector,
+                        turn: m.turn,
+                        status: m.status,
+                        cavity: m.cavity,
+                        cycle: m.cycle,
+                        collaborator: m.collaborator,
+                        problema: m.problema,
+                        motivoAusencia: m.motivoAusencia,
+                        qty: Array.isArray(m.rows) ? m.rows.length : 0,
                         totalAverage: m.totalAverage,
                         tolMin: m.tolMin,
                         tolMid: m.tolMid,
@@ -7142,28 +7274,431 @@
                         <span class="live-dot"></span> Atualização em tempo real · Última medição: <span id="live-date">—</span> · <span id="live-clock">--:--:--</span>
                     </div>
                 </div>
-                <div class="live-summary" id="live-summary"></div>
-                <div class="live-list" id="live-list"><div class="live-empty">🔄 Conectando…</div></div>
+                <div class="live-view-toggle">
+                    <button type="button" class="lv-toggle active" id="lv-btn-3d" onclick="switchLiveView('3d')">🧊 Visualização 3D</button>
+                    <button type="button" class="lv-toggle" id="lv-btn-list" onclick="switchLiveView('list')">📋 Lista</button>
+                </div>
+                <div id="live-view-list" style="display:none;">
+                    <div class="live-summary" id="live-summary"></div>
+                    <div class="live-list" id="live-list"><div class="live-empty">🔄 Conectando…</div></div>
+                </div>
+                <div class="live-3d" id="live-3d"><div class="live-empty">🧊 Preparando visualização 3D…</div></div>
                 <div class="live-footer">Última atualização: <span id="live-last-update">—</span></div>`;
 
             const dateEl = document.getElementById('live-date');
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
+            initLive3D();
 
             db.collection('configuracoes').doc('painel_ao_vivo').onSnapshot((snap) => {
+                let machines = [];
                 if (!snap.exists) {
                     if (dateEl) dateEl.textContent = '—';
-                    renderLive([]);
-                    return;
+                } else {
+                    const data = snap.data() || {};
+                    if (dateEl) dateEl.textContent = (data.date || '').split('-').reverse().join('/');
+                    machines = Array.isArray(data.machines) ? data.machines : [];
                 }
-                const data = snap.data() || {};
-                if (dateEl) dateEl.textContent = (data.date || '').split('-').reverse().join('/');
-                renderLive(Array.isArray(data.machines) ? data.machines : []);
+                renderLive(machines);
+                renderLive3D(machines);
             }, (err) => {
                     console.error(err);
                     const listEl = document.getElementById('live-list');
                     if (listEl) listEl.innerHTML = `<div class="live-empty">❌ Erro ao conectar: ${escapeHtml(err && err.message ? err.message : err)}</div>`;
                 });
+        }
+
+        // ==================== MODO AO VIVO 3D ====================
+        let live3D = null;
+
+        const LIVE3D_COLORS = { ok: 0x28c76f, below: 0xff3b5c, above: 0xffa726 };
+        const LIVE3D_LABELS = { ok: 'DENTRO DA FAIXA', below: 'ABAIXO DO MÍNIMO', above: 'ACIMA DO MÁXIMO' };
+
+        function live3DColor(cls) { return LIVE3D_COLORS[cls] || LIVE3D_COLORS.ok; }
+
+        function roundRectPath(ctx, x, y, w, h, r) {
+            r = Math.min(r, w / 2, h / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        function makeLabelSprite(m, cls) {
+            const color = live3DColor(cls);
+            const hex = '#' + color.toString(16).padStart(6, '0');
+            const c = document.createElement('canvas');
+            const W = 320, H = 152;
+            c.width = W; c.height = H;
+            const ctx = c.getContext('2d');
+
+            ctx.fillStyle = 'rgba(18, 15, 38, 0.94)';
+            roundRectPath(ctx, 6, 6, W - 12, H - 12, 20);
+            ctx.fill();
+
+            ctx.strokeStyle = hex;
+            ctx.lineWidth = 5;
+            roundRectPath(ctx, 6, 6, W - 12, H - 12, 20);
+            ctx.stroke();
+
+            ctx.fillStyle = hex;
+            roundRectPath(ctx, 18, 17, W - 36, 34, 17);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 17px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(LIVE3D_LABELS[cls] || '—', W / 2, 34);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 26px Arial';
+            ctx.fillText(String(m.machine || '—'), W / 2, 72);
+
+            ctx.fillStyle = '#cfc7e8';
+            ctx.font = '16px Arial';
+            ctx.fillText(String(m.product || '—'), W / 2, 96);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Arial';
+            ctx.fillText('Média ' + fmt(parseNum(m.totalAverage), 3), W / 2, 126);
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.minFilter = THREE.LinearFilter;
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(4.8, 2.28, 1);
+            sprite.position.y = 4.2;
+            return sprite;
+        }
+
+        function buildThermoMachine(m, cls) {
+            const color = live3DColor(cls);
+            const group = new THREE.Group();
+
+            const base = new THREE.Mesh(
+                new THREE.BoxGeometry(2.6, 0.35, 2.0),
+                new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.6, metalness: 0.4 })
+            );
+            base.position.y = 0.175;
+            base.castShadow = true;
+            base.receiveShadow = true;
+            group.add(base);
+
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(2.2, 1.9, 1.7),
+                new THREE.MeshStandardMaterial({ color: 0x3e2970, roughness: 0.35, metalness: 0.5 })
+            );
+            body.position.y = 1.3;
+            body.castShadow = true;
+            body.receiveShadow = true;
+            group.add(body);
+
+            const winMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.1, emissive: color, emissiveIntensity: 0.7 });
+            const win = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.55, 0.14), winMat);
+            win.position.set(0, 1.35, 0.88);
+            group.add(win);
+
+            const top = new THREE.Mesh(
+                new THREE.BoxGeometry(2.4, 0.25, 1.9),
+                new THREE.MeshStandardMaterial({ color: 0x7a6fb0, roughness: 0.2, metalness: 0.7 })
+            );
+            top.position.y = 2.3;
+            top.castShadow = true;
+            top.receiveShadow = true;
+            group.add(top);
+
+            const sphMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 0.1, emissive: color, emissiveIntensity: 1.0 });
+            const sph = new THREE.Mesh(new THREE.SphereGeometry(0.18, 24, 24), sphMat);
+            sph.position.set(0, 2.72, 0);
+            group.add(sph);
+
+            group.userData = { sphereMat: sphMat, winMat: winMat, time: Math.random() * 100, machineData: m, cls: cls };
+            group.add(makeLabelSprite(m, cls));
+            group.traverse(o => { if (o.isMesh) { o.userData.machineData = m; o.userData.cls = cls; } });
+            return group;
+        }
+
+        function renderLive3D(machines) {
+            if (!live3D || !live3D.ready) return;
+            hideLive3DInfo();
+            while (live3D.machineGroup.children.length) {
+                live3D.machineGroup.remove(live3D.machineGroup.children[0]);
+            }
+            const list = Array.isArray(machines) ? machines : [];
+            const cols = 4;
+            const spacingX = 7.0;
+            const spacingZ = 8.5;
+            const rows = Math.max(1, Math.ceil(list.length / cols));
+            const offX = (Math.min(list.length, cols) - 1) * spacingX / 2;
+            const offZ = (rows - 1) * spacingZ / 2;
+            list.forEach((m, i) => {
+                const cls = classifyLive(parseNum(m.totalAverage), parseNum(m.tolMin), parseNum(m.tolMax));
+                const mach = buildThermoMachine(m, cls);
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                mach.position.set(col * spacingX - offX, 0, row * spacingZ - offZ);
+                live3D.machineGroup.add(mach);
+            });
+            live3D.raycastTargets = [];
+            live3D.machineGroup.traverse(o => { if (o.isMesh) live3D.raycastTargets.push(o); });
+        }
+
+        function switchLiveView(mode) {
+            const listEl = document.getElementById('live-view-list');
+            const d3 = document.getElementById('live-3d');
+            const btnList = document.getElementById('lv-btn-list');
+            const btn3d = document.getElementById('lv-btn-3d');
+            if (mode === 'list') {
+                if (listEl) listEl.style.display = 'block';
+                if (d3) d3.style.display = 'none';
+                if (btnList) btnList.classList.add('active');
+                if (btn3d) btn3d.classList.remove('active');
+            } else {
+                if (listEl) listEl.style.display = 'none';
+                if (d3) d3.style.display = 'block';
+                if (btnList) btnList.classList.remove('active');
+                if (btn3d) btn3d.classList.add('active');
+            }
+            if (live3D) setTimeout(resizeLive3D, 60);
+        }
+
+        function resizeLive3D() {
+            if (!live3D || !live3D.container) return;
+            const w = live3D.container.clientWidth || window.innerWidth;
+            const h = live3D.container.clientHeight || window.innerHeight;
+            live3D.renderer.setSize(w, h);
+            live3D.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            live3D.camera.aspect = w / h;
+            live3D.camera.updateProjectionMatrix();
+        }
+
+        function bindLive3DControls() {
+            const el = live3D.renderer.domElement;
+            el.style.touchAction = 'none';
+
+            el.addEventListener('pointerdown', (e) => {
+                live3D.dragging = true;
+                live3D.moved = false;
+                live3D.autoRotate = false;
+                live3D.prevX = e.clientX;
+                live3D.prevY = e.clientY;
+                try { el.setPointerCapture(e.pointerId); } catch (_) {}
+            });
+            el.addEventListener('pointermove', (e) => {
+                if (!live3D.dragging) return;
+                const dx = e.clientX - live3D.prevX;
+                const dy = e.clientY - live3D.prevY;
+                if (Math.abs(dx) + Math.abs(dy) > 4) live3D.moved = true;
+                live3D.prevX = e.clientX;
+                live3D.prevY = e.clientY;
+                live3D.rotY += dx * 0.006;
+                live3D.rotX += dy * 0.004;
+                live3D.rotX = Math.max(-0.15, Math.min(0.65, live3D.rotX));
+            });
+            el.addEventListener('pointerup', (e) => {
+                live3D.dragging = false;
+                try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+                setTimeout(() => { if (!live3D.dragging) live3D.autoRotate = true; }, 1600);
+                if (!live3D.moved) onClickLive3D(e);
+            });
+            el.addEventListener('pointercancel', () => { live3D.dragging = false; live3D.autoRotate = true; });
+
+            el.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                live3D.dist = Math.max(live3D.minDist, Math.min(live3D.maxDist, live3D.dist + e.deltaY * 0.02));
+            }, { passive: false });
+
+            let pinchStart = 0;
+            el.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    pinchStart = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                }
+            }, { passive: true });
+            el.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    if (pinchStart > 0) {
+                        live3D.dist = Math.max(live3D.minDist, Math.min(live3D.maxDist, live3D.dist + (pinchStart - d) * 0.045));
+                    }
+                    pinchStart = d;
+                }
+            }, { passive: true });
+        }
+
+        function animateLive3D() {
+            if (!live3D || !live3D.ready) return;
+            requestAnimationFrame(animateLive3D);
+
+            if (live3D.autoRotate && !live3D.dragging) {
+                live3D.rotY += 0.0035;
+            }
+
+            const cosX = Math.cos(live3D.rotX);
+            live3D.camera.position.set(
+                live3D.target.x + live3D.dist * Math.sin(live3D.rotY) * cosX,
+                live3D.target.y + live3D.dist * Math.sin(live3D.rotX),
+                live3D.target.z + live3D.dist * Math.cos(live3D.rotY) * cosX
+            );
+            live3D.camera.lookAt(live3D.target);
+
+            const t = performance.now() * 0.003;
+            live3D.machineGroup.children.forEach(mach => {
+                if (mach.userData && mach.userData.sphereMat) {
+                    mach.userData.sphereMat.emissiveIntensity = 0.6 + 0.6 * (0.5 + 0.5 * Math.sin(t + mach.userData.time));
+                }
+                if (mach.userData && mach.userData.winMat) {
+                    mach.userData.winMat.emissiveIntensity = 0.45 + 0.4 * (0.5 + 0.5 * Math.sin(t + mach.userData.time + 1.3));
+                }
+            });
+
+            live3D.renderer.render(live3D.scene, live3D.camera);
+        }
+
+        function showLive3DInfo(m, cls) {
+            if (!live3D || !live3D.container) return;
+            let info = document.getElementById('live3d-info');
+            if (!info) {
+                info = document.createElement('div');
+                info.id = 'live3d-info';
+                info.className = 'live3d-info';
+                live3D.container.appendChild(info);
+            }
+            const color = live3DColor(cls);
+            const hex = '#' + color.toString(16).padStart(6, '0');
+            const label = LIVE3D_LABELS[cls] || 'DENTRO DA FAIXA';
+            const avg = parseNum(m.totalAverage);
+            const tMin = parseNum(m.tolMin);
+            const tMax = parseNum(m.tolMax);
+            const problema = (m.problema || '').trim();
+            const statusTxt = (m.status || '').toUpperCase();
+
+            info.innerHTML =
+                `<button type="button" class="li-close" onclick="hideLive3DInfo()">✕</button>` +
+                `<div class="li-title">${escapeHtml(m.machine || '—')}</div>` +
+                `<div class="li-sub">${escapeHtml(m.product || '—')}</div>` +
+                `<div style="margin-bottom:12px;"><span class="li-badge" style="background:${hex}22;color:${hex};border:1px solid ${hex};">${escapeHtml(label)}</span></div>` +
+                `<div class="li-row"><span class="k">🔢 Cavidade (QTD)</span><span class="v">${escapeHtml(m.cavity != null ? m.cavity : '—')}</span></div>` +
+                `<div class="li-row"><span class="k">📦 Qtd. Pesagens</span><span class="v">${m.qty != null ? m.qty : '—'}</span></div>` +
+                `<div class="li-row"><span class="k">⚡ Ciclo (veloc.)</span><span class="v">${escapeHtml(m.cycle || '—')}</span></div>` +
+                `<div class="li-row"><span class="k">🧑 Colaborador</span><span class="v">${escapeHtml(m.collaborator || '—')}</span></div>` +
+                `<div class="li-row"><span class="k">👤 Inspetor</span><span class="v">${escapeHtml(m.inspector || '—')}</span></div>` +
+                `<div class="li-row"><span class="k">🔄 Turno</span><span class="v">${escapeHtml(m.turn || '—')}</span></div>` +
+                `<div class="li-row"><span class="k">✅ Status</span><span class="v">${statusTxt || '—'}</span></div>` +
+                `<div class="li-row"><span class="k">📏 Média</span><span class="v">${fmt(avg, 3)}</span></div>` +
+                `<div class="li-row"><span class="k">🎯 Referência (Mín–Máx)</span><span class="v">${fmt(tMin, 2)} – ${fmt(tMax, 2)}</span></div>` +
+                (problema
+                    ? `<div class="li-problema">⚠️ Problema identificado:<br>${escapeHtml(problema)}</div>`
+                    : `<div class="li-row" style="border-bottom:none;"><span class="k">⚠️ Problema</span><span class="v" style="color:#7bd88f;">Nenhum registrado</span></div>`);
+            info.classList.add('show');
+        }
+
+        function hideLive3DInfo() {
+            const info = document.getElementById('live3d-info');
+            if (info) info.classList.remove('show');
+        }
+
+        function onClickLive3D(e) {
+            if (!live3D || !live3D.ready || !live3D.raycastTargets || !live3D.raycastTargets.length) return;
+            const dom = live3D.renderer.domElement;
+            const rect = dom.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            const ny = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(nx, ny), live3D.camera);
+            const hits = raycaster.intersectObjects(live3D.raycastTargets, false);
+            let found = null, foundCls = 'ok';
+            for (let k = 0; k < hits.length; k++) {
+                let obj = hits[k].object;
+                while (obj) {
+                    if (obj.userData && obj.userData.machineData) {
+                        found = obj.userData.machineData;
+                        foundCls = obj.userData.cls || 'ok';
+                        break;
+                    }
+                    obj = obj.parent;
+                }
+                if (found) break;
+            }
+            if (found) showLive3DInfo(found, foundCls);
+            else hideLive3DInfo();
+        }
+
+        function initLive3D() {
+            if (typeof THREE === 'undefined') {
+                const c = document.getElementById('live-3d');
+                if (c) c.innerHTML = '<div class="live-empty">⚠️ Não foi possível carregar a visualização 3D (sem conexão com a internet).</div>';
+                return;
+            }
+            const container = document.getElementById('live-3d');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0b0a1a);
+            scene.fog = new THREE.FogExp2(0x0b0a1a, 0.011);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+            const key = new THREE.DirectionalLight(0xffffff, 1.0);
+            key.position.set(10, 18, 12);
+            key.castShadow = true;
+            key.shadow.mapSize.set(2048, 2048);
+            key.shadow.camera.left = -35; key.shadow.camera.right = 35;
+            key.shadow.camera.top = 35; key.shadow.camera.bottom = -35;
+            key.shadow.camera.far = 90;
+            scene.add(key);
+            const p1 = new THREE.PointLight(0x8a5cff, 1.2, 70);
+            p1.position.set(-14, 10, -8);
+            scene.add(p1);
+            const p2 = new THREE.PointLight(0x28c76f, 0.9, 70);
+            p2.position.set(14, 8, 8);
+            scene.add(p2);
+
+            const grid = new THREE.GridHelper(90, 45, 0x3a3568, 0x211e40);
+            grid.position.y = 0;
+            scene.add(grid);
+
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(160, 160),
+                new THREE.MeshStandardMaterial({ color: 0x0b0a1a, roughness: 0.55, metalness: 0.25 })
+            );
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -0.02;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            const machineGroup = new THREE.Group();
+            scene.add(machineGroup);
+
+            const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 1000);
+            const target = new THREE.Vector3(0, 1.8, 0);
+            camera.position.set(0, 16, 26);
+
+            const hint = document.createElement('div');
+            hint.className = 'hint';
+            hint.textContent = '🖱️ Arraste para girar · Role / aperte com 2 dedos para dar zoom · Atualiza em tempo real';
+            container.appendChild(hint);
+
+            live3D = {
+                ready: true,
+                container, renderer, scene, camera, target, machineGroup,
+                rotY: 0, rotX: 0.28, dist: 26, minDist: 12, maxDist: 60,
+                autoRotate: true, dragging: false, prevX: 0, prevY: 0
+            };
+
+            bindLive3DControls();
+            resizeLive3D();
+            window.addEventListener('resize', resizeLive3D);
+            animateLive3D();
         }
 
         if (isLiveMode) {
