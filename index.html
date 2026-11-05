@@ -7148,6 +7148,18 @@
             return list;
         }
 
+        async function loadFullLiveMachines(date) {
+            try {
+                if (!date) return [];
+                const snap = await db.collection('historico').doc(date).get();
+                if (!snap.exists) return [];
+                return flattenLiveMachines(snap.data());
+            } catch (e) {
+                console.error('Erro ao carregar dados completos do painel ao vivo:', e);
+                return [];
+            }
+        }
+
         function parseNum(v) {
             if (v === null || v === undefined || v === '') return NaN;
             const n = parseFloat(String(v).replace(',', '.'));
@@ -7290,15 +7302,19 @@
             setInterval(updateLiveClock, 1000);
             initLive3D();
 
-            db.collection('configuracoes').doc('painel_ao_vivo').onSnapshot((snap) => {
+            db.collection('configuracoes').doc('painel_ao_vivo').onSnapshot(async (snap) => {
                 let machines = [];
                 if (!snap.exists) {
                     if (dateEl) dateEl.textContent = '—';
-                } else {
-                    const data = snap.data() || {};
-                    if (dateEl) dateEl.textContent = (data.date || '').split('-').reverse().join('/');
-                    machines = Array.isArray(data.machines) ? data.machines : [];
+                    renderLive([]);
+                    renderLive3D([]);
+                    return;
                 }
+                const data = snap.data() || {};
+                const dateStr = data.date || '';
+                if (dateEl) dateEl.textContent = dateStr.split('-').reverse().join('/');
+                machines = await loadFullLiveMachines(dateStr);
+                if (!machines.length) machines = Array.isArray(data.machines) ? data.machines : [];
                 renderLive(machines);
                 renderLive3D(machines);
             }, (err) => {
@@ -7577,16 +7593,17 @@
 
             info.innerHTML =
                 `<button type="button" class="li-close" onclick="hideLive3DInfo()">✕</button>` +
-                `<div class="li-title">${escapeHtml(m.machine || '—')}</div>` +
+                `<div class="li-title">🏭 ${escapeHtml(m.machine || '—')}</div>` +
                 `<div class="li-sub">${escapeHtml(m.product || '—')}</div>` +
                 `<div style="margin-bottom:12px;"><span class="li-badge" style="background:${hex}22;color:${hex};border:1px solid ${hex};">${escapeHtml(label)}</span></div>` +
-                `<div class="li-row"><span class="k">🔢 Cavidade (QTD)</span><span class="v">${escapeHtml(m.cavity != null ? m.cavity : '—')}</span></div>` +
-                `<div class="li-row"><span class="k">📦 Qtd. Pesagens</span><span class="v">${m.qty != null ? m.qty : '—'}</span></div>` +
-                `<div class="li-row"><span class="k">⚡ Ciclo (veloc.)</span><span class="v">${escapeHtml(m.cycle || '—')}</span></div>` +
-                `<div class="li-row"><span class="k">🧑 Colaborador</span><span class="v">${escapeHtml(m.collaborator || '—')}</span></div>` +
+                `<div class="li-row"><span class="k">📦 Cód. Produto</span><span class="v">${escapeHtml(m.product || '—')}</span></div>` +
+                `<div class="li-row"><span class="k">🏷️ Tipo</span><span class="v">${escapeHtml(m.productType || '—')}</span></div>` +
                 `<div class="li-row"><span class="k">👤 Inspetor</span><span class="v">${escapeHtml(m.inspector || '—')}</span></div>` +
+                `<div class="li-row"><span class="k">🧑 Colaborador</span><span class="v">${escapeHtml(m.collaborator || '—')}</span></div>` +
                 `<div class="li-row"><span class="k">🔄 Turno</span><span class="v">${escapeHtml(m.turn || '—')}</span></div>` +
                 `<div class="li-row"><span class="k">✅ Status</span><span class="v">${statusTxt || '—'}</span></div>` +
+                `<div class="li-row"><span class="k">🔢 Cavidade (Qtd. peças)</span><span class="v">${escapeHtml(m.cavity != null && m.cavity !== '' ? m.cavity : '—')}</span></div>` +
+                `<div class="li-row"><span class="k">⚡ Ciclo (veloc.)</span><span class="v">${escapeHtml(m.cycle || '—')}</span></div>` +
                 `<div class="li-row"><span class="k">📏 Média</span><span class="v">${fmt(avg, 3)}</span></div>` +
                 `<div class="li-row"><span class="k">🎯 Referência (Mín–Máx)</span><span class="v">${fmt(tMin, 2)} – ${fmt(tMax, 2)}</span></div>` +
                 (problema
