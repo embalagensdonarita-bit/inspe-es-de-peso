@@ -3198,6 +3198,15 @@
         // ============ RESTO DO SISTEMA (mantido original) ==========
         // ============================================================
 
+        function detectProductType(name) {
+            const upper = String(name || '').toUpperCase().trim();
+            if (!upper) return null;
+            if (upper.indexOf('POTE') !== -1) return 'POTE /C TAMPA';
+            if (upper.indexOf('BASE') !== -1) return 'BASE';
+            if (upper.indexOf('TAMPA') !== -1) return 'TAMPA';
+            return null;
+        }
+
         function addMachineCard(machineData = null) {
             const container = document.getElementById('machines-container');
             const cardId = `machine-${++machineCounter}`;
@@ -3377,6 +3386,13 @@
             cardElement.querySelector('.machine-name').addEventListener('input', markDirty);
             
             cardElement.querySelector('.product-code').addEventListener('input', markDirty);
+            cardElement.querySelector('.product-code').addEventListener('input', function() {
+                const detected = detectProductType(this.value);
+                if (detected) {
+                    const typeSel = cardElement.querySelector('.product-type-select');
+                    if (typeSel && typeSel.value !== detected) typeSel.value = detected;
+                }
+            });
             cardElement.querySelector('.product-code').addEventListener('change', function() {
                 const prodName = this.value.trim();
                 if (productConfig[prodName]) {
