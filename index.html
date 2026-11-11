@@ -2529,7 +2529,7 @@
         <!-- NOVO BLOCO: FOTOS DOS PRODUTOS -->
         <div style="margin-bottom: 20px; padding: 16px; background: #f8f7fc; border-radius: 8px; border: 1px dashed #d5cfe8;">
             <h4 style="color:#241245; margin-bottom: 10px;">📸 Fotos dos Produtos</h4>
-            <small style="display:block; margin-bottom:10px; color:#666;">Salve a lista de produtos primeiro, depois faça o upload das fotos. Elas serão vinculadas aos produtos para validação na Inspeção.</small>
+            <small style="display:block; margin-bottom:10px; color:#666;">Salve a lista de produtos primeiro, depois faça o upload das fotos. Elas serão salvas automaticamente e vinculadas aos produtos para validação na Inspeção.</small>
             <div id="config-photos-grid"></div>
         </div>
 
@@ -2718,6 +2718,7 @@
         const CONFIG_PASSWORD = "20362881";
         const CONFIG_COLLECTION = "configuracoes";
         const CONFIG_DOC = "pesos_produtos";
+        const PHOTOS_COLLECTION = "fotos_produtos";
         let productConfig = {};
         let initialProductOptions = [];
 
@@ -2930,6 +2931,7 @@
         // ============================================================
         async function loadProductConfig() {
             try {
+                // Carrega tolerâncias
                 const docSnap = await db.collection(CONFIG_COLLECTION).doc(CONFIG_DOC).get();
                 if (docSnap.exists) {
                     productConfig = docSnap.data().products || {};
@@ -2937,6 +2939,17 @@
                     const local = localStorage.getItem('dr_product_config');
                     if (local) productConfig = JSON.parse(local);
                 }
+
+                // Carrega as fotos da coleção separada
+                try {
+                    const photosSnap = await db.collection(PHOTOS_COLLECTION).get();
+                    photosSnap.forEach(doc => {
+                        if (productConfig[doc.id]) {
+                            productConfig[doc.id].photo = doc.data().photo;
+                        }
+                    });
+                } catch(e) { console.warn("Erro ao carregar fotos", e); }
+
             } catch (e) {
                 console.warn("Erro ao carregar config do Firestore, usando localStorage", e);
                 const local = localStorage.getItem('dr_product_config');
@@ -3003,13 +3016,10 @@
                 }
 
                 if (parts.length >= 3) {
-                    // Preserva a foto se o produto já existia
-                    const existingPhoto = (productConfig[prodName] && productConfig[prodName].photo) ? productConfig[prodName].photo : '';
                     newConfig[prodName] = {
                         min: parts[0].trim(),
                         mid: parts[1].trim(),
-                        max: parts[2].trim(),
-                        photo: existingPhoto
+                        max: parts[2].trim()
                     };
                 } else {
                     alert(`⚠️ Erro na linha ${i+1} das tolerâncias. Use TAB entre os valores. Linha: "${tolLines[i]}"`);
@@ -3017,19 +3027,49 @@
                 }
             }
 
+            // Preserva as fotos que já estavam na memória
+            for (const prodName in productConfig) {
+                if (productConfig[prodName].photo) {
+                    if (newConfig[prodName]) {
+                        newConfig[prodName].photo = productConfig[prodName].photo;
+                    }
+                }
+            }
+
             productConfig = newConfig;
 
             try {
                 showLoading('Salvando configurações...');
-                await db.collection(CONFIG_COLLECTION).doc(CONFIG_DOC).set({ products: productConfig });
-                localStorage.setItem('dr_product_config', JSON.stringify(productConfig));
+                
+                // Limpa o objeto principal de fotos para não estourar o limite de 1MB do Firestore
+                const configToSave = {};
+                for (const key in productConfig) {
+                    configToSave[key] = {
+                        min: productConfig[key].min,
+                        mid: productConfig[key].mid,
+                        max: productConfig[key].max
+                    };
+                }
+                
+                await db.collection(CONFIG_COLLECTION).doc(CONFIG_DOC).set({ products: configToSave });
+                localStorage.setItem('dr_product_config', JSON.stringify(configToSave)); // Salva versão limpa no cache local também
+                
                 alert('✅ Lista de produtos e tolerâncias salva com sucesso!');
                 updateProductDatalist();
                 updateConfigTextareas();
                 renderConfigPhotos();
             } catch (e) {
                 console.error("Erro ao salvar no Firestore:", e);
-                localStorage.setItem('dr_product_config', JSON.stringify(productConfig));
+                // Caso dê erro, salva localmente sem as fotos para não estourar o limite do cache
+                const configToSave = {};
+                for (const key in productConfig) {
+                    configToSave[key] = {
+                        min: productConfig[key].min,
+                        mid: productConfig[key].mid,
+                        max: productConfig[key].max
+                    };
+                }
+                localStorage.setItem('dr_product_config', JSON.stringify(configToSave));
                 alert('⚠️ Salvo localmente (sem conexão com o servidor).');
                 updateProductDatalist();
                 updateConfigTextareas();
@@ -3084,27 +3124,37 @@
             const prodName = decodeURIComponent(prodNameEnc);
             showLoading('Processando foto...');
             try {
+                // Valida o tamanho do arquivo original (10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    throw new Error('A imagem original é muito grande (maior que 10MB). Escolha uma imagem menor.');
+                }
+
                 const dataUrl = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = reject;
+                    reader.onerror = () => reject(new Error('Erro ao ler o arquivo.'));
                     reader.readAsDataURL(file);
                 });
-                // Comprime para max 400px e qualidade 0.6 para garantir que caiba no Firebase
-                const compressed = await compressImage(dataUrl, 400, 0.6);
+                
+                // Comprime a imagem para uma miniatura super leve (evita o erro de tamanho do Firebase)
+                const compressed = await compressImage(dataUrl, 300, 0.6);
 
                 if (!productConfig[prodName]) {
                     productConfig[prodName] = { min: '', mid: '', max: '' };
                 }
                 productConfig[prodName].photo = compressed;
 
-                // Atualiza UI
+                // Atualiza UI imediatamente
                 const img = document.getElementById(`config-img-${index}`);
                 if (img) { img.src = compressed; img.style.display = 'block'; }
-                showAutoFillToast(`✅ Foto de "${prodName}" atualizada. Não esqueça de Salvar a Lista!`, 'success');
+
+                // Salva IMEDIATAMENTE na coleção separada de fotos
+                await db.collection(PHOTOS_COLLECTION).doc(prodName).set({ photo: compressed });
+                
+                showAutoFillToast(`✅ Foto de "${prodName}" salva automaticamente!`, 'success');
             } catch (err) {
                 console.error(err);
-                alert('Erro ao processar foto.');
+                alert('Erro ao processar foto: ' + (err.message || 'Verifique se a imagem é válida.'));
             } finally {
                 hideLoading();
             }
@@ -3119,9 +3169,7 @@
         }
 
         function compressImage(dataUrl, maxWidth, quality) {
-            maxWidth = maxWidth || 800;
-            quality = quality || 0.72;
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
                     let width = img.width;
@@ -3136,12 +3184,13 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     try {
-                        resolve(canvas.toDataURL('image/jpeg', quality));
+                        const res = canvas.toDataURL('image/jpeg', quality);
+                        resolve(res);
                     } catch (err) {
-                        resolve(dataUrl);
+                        reject(new Error('Erro na conversão da imagem.'));
                     }
                 };
-                img.onerror = () => resolve(dataUrl);
+                img.onerror = () => reject(new Error('Falha ao carregar a imagem. Formato não suportado.'));
                 img.src = dataUrl;
             });
         }
@@ -3597,6 +3646,7 @@
                     const typeSel = cardElement.querySelector('.product-type-select');
                     if (typeSel && typeSel.value !== detected) typeSel.value = detected;
                 }
+                updateProductPhotoUI(cardId);
             });
             cardElement.querySelector('.product-code').addEventListener('change', function() {
                 const prodName = this.value.trim();
@@ -7319,10 +7369,10 @@
             }
         });
 
-        window.addEventListener('load', function() {
+        window.addEventListener('load', async function() {
             if (isLiveMode) return;
             setDateForInputs();
-            addMachineCard();
+            
             const hs = document.getElementById('history-section');
             if (hs) hs.classList.remove('visible');
             const se = document.getElementById('btn-save-edits');
@@ -7339,7 +7389,12 @@
             if (datalist) {
                 initialProductOptions = Array.from(datalist.querySelectorAll('option')).map(opt => opt.value);
             }
-            loadProductConfig();
+
+            // Aguarda carregar o Firebase (incluindo as fotos) antes de criar o cartão
+            await loadProductConfig();
+            
+            // Cria o primeiro cartão agora que as fotos já estão na memória
+            addMachineCard();
 
             updateVCSummary();
 
