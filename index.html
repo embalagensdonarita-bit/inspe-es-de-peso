@@ -2161,10 +2161,77 @@
             cursor: pointer;
             accent-color: #28a745;
         }
+        .product-validation-area .photo-thumb {
+            position: relative;
+            display: inline-block;
+            line-height: 0;
+        }
+        .photo-zoom-btn {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            background: rgba(36, 18, 69, 0.88);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            transition: background 0.2s, transform 0.15s;
+            z-index: 2;
+        }
+        .photo-zoom-btn:hover {
+            background: rgba(62, 41, 112, 0.95);
+            transform: scale(1.08);
+        }
+        .photo-lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            cursor: zoom-out;
+            padding: 40px;
+        }
+        .photo-lightbox.open { display: flex; }
+        .photo-lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 14px 50px rgba(0,0,0,0.7);
+        }
+        .photo-lightbox .photo-lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.18);
+            color: #fff;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 10000;
+        }
+        .photo-lightbox .photo-lightbox-close:hover { background: rgba(255,255,255,0.35); }
     </style>
 </head>
 <body>
     <div id="live-view" style="display:none;"></div>
+    <div id="photo-lightbox" class="photo-lightbox" onclick="closePhotoFullscreen()">
+        <button type="button" class="photo-lightbox-close" onclick="closePhotoFullscreen()" title="Fechar">✕</button>
+        <img id="photo-lightbox-img" src="" alt="Foto ampliada">
+    </div>
     <header>
         <div class="logo-area">
             <h1>Dona Rita Embalagens</h1>
@@ -3555,7 +3622,10 @@
                     <!-- NOVO BLOCO: VALIDAÇÃO DE FOTO DO PRODUTO -->
                     <div class="product-validation-area" id="${cardId}-val-area">
                         <div class="photo-container">
-                            <img id="${cardId}-prod-photo" src="${photoSrc}" style="display: ${displayStyle};" alt="Foto do Produto">
+                            <div class="photo-thumb">
+                                <img id="${cardId}-prod-photo" src="${photoSrc}" style="display: ${displayStyle};" alt="Foto do Produto">
+                                <button type="button" class="photo-zoom-btn" id="${cardId}-zoom-btn" onclick="openPhotoFullscreen('${cardId}')" title="Ampliar foto" style="display: ${photoSrc ? 'flex' : 'none'};">🔍</button>
+                            </div>
                             <span class="no-photo" id="${cardId}-no-photo" style="${photoSrc ? 'display:none;' : 'display:block;'}">⚠️ Nenhuma foto cadastrada para este produto na Configuração.</span>
                         </div>
                         <label class="check-label" id="${cardId}-val-label">
@@ -3697,6 +3767,7 @@
             const imgPreview = card.querySelector(`#${cardId}-prod-photo`);
             const noPhotoMsg = card.querySelector(`#${cardId}-no-photo`);
             const checkbox = card.querySelector('.product-validated-checkbox');
+            const zoomBtn = card.querySelector(`#${cardId}-zoom-btn`);
 
             if (!valArea || !imgPreview || !noPhotoMsg || !checkbox) return;
 
@@ -3714,10 +3785,12 @@
                 imgPreview.src = config.photo;
                 imgPreview.style.display = 'block';
                 noPhotoMsg.style.display = 'none';
+                if (zoomBtn) zoomBtn.style.display = 'flex';
             } else {
                 imgPreview.style.display = 'none';
                 imgPreview.src = '';
                 noPhotoMsg.style.display = 'block';
+                if (zoomBtn) zoomBtn.style.display = 'none';
             }
 
             // Atualiza a cor visual do bloco de validação
@@ -3726,6 +3799,20 @@
             } else {
                 valArea.classList.remove('validated');
             }
+        }
+
+        function openPhotoFullscreen(cardId) {
+            const img = document.getElementById(cardId + '-prod-photo');
+            const lightbox = document.getElementById('photo-lightbox');
+            const lightboxImg = document.getElementById('photo-lightbox-img');
+            if (!img || !img.src || !lightbox || !lightboxImg) return;
+            lightboxImg.src = img.src;
+            lightbox.classList.add('open');
+        }
+
+        function closePhotoFullscreen() {
+            const lightbox = document.getElementById('photo-lightbox');
+            if (lightbox) lightbox.classList.remove('open');
         }
 
         function removeMachine(id) {
