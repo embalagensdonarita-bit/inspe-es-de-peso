@@ -2871,6 +2871,10 @@
             return encodeURIComponent(String(str));
         }
 
+        function photoDocKey(name) {
+            return encodeURIComponent(String(name || ''));
+        }
+
         function getWeightColorClass(value, min, mid, max) {
             if (value === '' || value === null || value === undefined || isNaN(value)) return '';
             const num = parseFloat(value);
@@ -3010,11 +3014,19 @@
                 // Carrega as fotos da coleção separada
                 try {
                     const photosSnap = await db.collection(PHOTOS_COLLECTION).get();
+                    const photosMap = {};
                     photosSnap.forEach(doc => {
-                        if (productConfig[doc.id]) {
-                            productConfig[doc.id].photo = doc.data().photo;
-                        }
+                        const d = doc.data();
+                        if (d && d.photo) photosMap[doc.id] = d.photo;
                     });
+                    for (const prodName in productConfig) {
+                        const key = photoDocKey(prodName);
+                        if (photosMap[key]) {
+                            productConfig[prodName].photo = photosMap[key];
+                        } else if (photosMap[prodName]) {
+                            productConfig[prodName].photo = photosMap[prodName];
+                        }
+                    }
                 } catch(e) { console.warn("Erro ao carregar fotos", e); }
 
             } catch (e) {
@@ -3216,7 +3228,7 @@
                 if (img) { img.src = compressed; img.style.display = 'block'; }
 
                 // Salva IMEDIATAMENTE na coleção separada de fotos
-                await db.collection(PHOTOS_COLLECTION).doc(prodName).set({ photo: compressed });
+                await db.collection(PHOTOS_COLLECTION).doc(photoDocKey(prodName)).set({ photo: compressed });
                 
                 showAutoFillToast(`✅ Foto de "${prodName}" salva automaticamente!`, 'success');
             } catch (err) {
