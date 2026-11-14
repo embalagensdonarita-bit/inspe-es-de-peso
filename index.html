@@ -3504,6 +3504,7 @@
             if (!upper) return null;
             if (upper.indexOf('POTE') !== -1) return 'POTE /C TAMPA';
             if (upper.indexOf('BASE') !== -1) return 'BASE';
+            if (upper.indexOf('ARTICULADA') !== -1) return 'ARTICULADA';
             if (upper.indexOf('TAMPA') !== -1) return 'TAMPA';
             return null;
         }
@@ -3571,6 +3572,7 @@
                 if (upper === 'BASE') typeValue = 'BASE';
                 else if (upper === 'NENHUM') typeValue = 'NENHUM';
                 else if (upper === 'POTE /C TAMPA') typeValue = 'POTE /C TAMPA';
+                else if (upper === 'ARTICULADA') typeValue = 'ARTICULADA';
                 else typeValue = 'TAMPA';
             }
 
@@ -3599,6 +3601,7 @@
                                 <option value="TAMPA" ${typeValue === 'TAMPA' ? 'selected' : ''}>TAMPA</option>
                                 <option value="BASE" ${typeValue === 'BASE' ? 'selected' : ''}>BASE</option>
                                 <option value="POTE /C TAMPA" ${typeValue === 'POTE /C TAMPA' ? 'selected' : ''}>POTE /C TAMPA</option>
+                                <option value="ARTICULADA" ${typeValue === 'ARTICULADA' ? 'selected' : ''}>ARTICULADA</option>
                                 <option value="NENHUM" ${typeValue === 'NENHUM' ? 'selected' : ''}>NENHUM</option>
                             </select>
                         </div>
