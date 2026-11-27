@@ -2269,7 +2269,7 @@
                 <button type="button" class="btn btn-pdf" onclick="openSimplePdfModal()">🛠️ RESUMO SIMPLES</button>
                 <button type="button" class="btn btn-excel" onclick="openExcelReportModal()">📊 EXCEL</button>
                 <button type="button" class="btn btn-excel" onclick="openProductExcelModal()">📦 EXCEL POR PEÇA</button>
-                <button type="button" class="btn btn-excel" onclick="generateMinMedMaxExcel()">⚖️ PESOS MIN/MÉD/MÁX</button>
+                <button type="button" class="btn btn-excel" onclick="openMinMedMaxModal()">⚖️ PESOS MIN/MÉD/MÁX</button>
                 <button type="button" class="btn btn-success" onclick="addMachineCard()">➕ Adicionar Máquina</button>
                 <button type="button" id="btn-save-daily" class="btn btn-primary" onclick="saveDailyData()">💾 Salvar Histórico do Dia</button>
                 <button type="button" id="btn-save-edits" class="btn btn-warning" onclick="saveEdits()" style="display:none;">💾 Salvar Alterações</button>
@@ -2747,6 +2747,21 @@
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
                 <button type="button" class="btn btn-outline" onclick="closeExcelReportModal()">Cancelar</button>
                 <button type="button" class="btn btn-excel" id="btn-generate-excel" onclick="generateExcelReport()">📥 Gerar Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="min-med-max-modal" style="display:none; position:fixed; inset:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#fff; padding:30px; border-radius:12px; width:430px; max-width:92vw; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <h3 style="color:#1D6F42; margin-bottom:10px; text-align:center;">⚖️ Pesos Mínimo, Médio e Máximo</h3>
+            <p style="color:#555; margin-bottom:18px; text-align:center;">Selecione o mês para consultar somente as pesagens desse período.</p>
+            <div style="margin-bottom:20px;">
+                <label for="min-med-max-month" style="display:block; font-weight:600; margin-bottom:7px;">📅 Mês de referência:</label>
+                <input type="month" id="min-med-max-month" required style="width:100%; padding:11px 12px; border:1.5px solid #ccc; border-radius:6px; font-size:15px; color:#241245;">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline" onclick="closeMinMedMaxModal()">Cancelar</button>
+                <button type="button" class="btn btn-excel" id="btn-generate-min-med-max" onclick="generateMinMedMaxExcel()">📥 Gerar Excel</button>
             </div>
         </div>
     </div>
@@ -7391,31 +7406,78 @@
             }
         }
 
+        function openMinMedMaxModal() {
+            const modal = document.getElementById('min-med-max-modal');
+            const monthInput = document.getElementById('min-med-max-month');
+            if (!modal || !monthInput) return;
+
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            monthInput.value = currentMonth;
+            modal.style.display = 'flex';
+            monthInput.focus();
+        }
+
+        function closeMinMedMaxModal() {
+            const modal = document.getElementById('min-med-max-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
         async function generateMinMedMaxExcel() {
+            const btn = document.getElementById('btn-generate-min-med-max');
+            const originalButtonText = btn ? btn.textContent : '';
+            const monthValue = document.getElementById('min-med-max-month')?.value || '';
+
+            if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue)) {
+                alert('📅 Selecione um mês válido antes de gerar a planilha.');
+                return;
+            }
             if (typeof ExcelJS === 'undefined') {
                 alert('❌ Biblioteca ExcelJS não carregada. Verifique a conexão com a internet.');
                 return;
             }
-            showLoading('Carregando todos os dados...');
+
+            const [year, month] = monthValue.split('-').map(Number);
+            const startDate = `${monthValue}-01`;
+            const lastDay = new Date(year, month, 0).getDate();
+            const endDate = `${monthValue}-${String(lastDay).padStart(2, '0')}`;
+            const monthLabel = new Date(year, month - 1, 1, 12).toLocaleDateString('pt-BR', {
+                month: 'long',
+                year: 'numeric'
+            });
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Gerando...';
+            }
+            showLoading(`Buscando pesagens de ${monthLabel}...`);
+
             try {
-                const snapshot = await db.collection(COLLECTION_NAME).get();
+                const snapshot = await db.collection(COLLECTION_NAME)
+                    .where(firebase.firestore.FieldPath.documentId(), '>=', startDate)
+                    .where(firebase.firestore.FieldPath.documentId(), '<=', endDate)
+                    .get();
+
                 if (snapshot.empty) {
-                    hideLoading();
-                    alert('📭 Nenhum dado encontrado no sistema.');
+                    alert(`📭 Nenhum dado encontrado para ${monthLabel}.`);
                     return;
                 }
 
                 const summary = {};
                 let totalMeasurements = 0;
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (!data || !data.inspectors) return;
+
                     Object.keys(data.inspectors).forEach(inspName => {
                         const inspObj = data.inspectors[inspName];
                         if (!inspObj || !inspObj.products) return;
+
                         Object.keys(inspObj.products).forEach(prodKey => {
                             const arr = inspObj.products[prodKey];
                             if (!Array.isArray(arr)) return;
+
                             arr.forEach(m => {
                                 const prodType = m.productType || 'TAMPA';
                                 const key = prodKey + '|||' + prodType;
@@ -7423,12 +7485,13 @@
                                     summary[key] = { name: prodKey, type: prodType, values: [], machines: 0 };
                                 }
                                 summary[key].machines++;
-                                (m.rows || []).forEach(r => {
-                                    ['m1', 'm3', 'm4'].forEach(k => {
-                                        const v = r[k];
-                                        if (v !== '' && v !== null && v !== undefined) {
-                                            const num = parseFloat(String(v).replace(',', '.'));
-                                            if (!isNaN(num)) {
+
+                                (Array.isArray(m.rows) ? m.rows : []).forEach(row => {
+                                    ['m1', 'm3', 'm4'].forEach(measurementKey => {
+                                        const value = row ? row[measurementKey] : undefined;
+                                        if (value !== '' && value !== null && value !== undefined) {
+                                            const num = parseFloat(String(value).replace(',', '.'));
+                                            if (Number.isFinite(num)) {
                                                 summary[key].values.push(num);
                                                 totalMeasurements++;
                                             }
@@ -7440,12 +7503,11 @@
                     });
                 });
 
-                const rows = Object.values(summary).filter(s => s.values.length > 0);
+                const rows = Object.values(summary).filter(item => item.values.length > 0);
                 rows.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
                 if (rows.length === 0) {
-                    hideLoading();
-                    alert('📭 Nenhuma medição de peso encontrada.');
+                    alert(`📭 Nenhuma medição de peso encontrada em ${monthLabel}.`);
                     return;
                 }
 
@@ -7458,7 +7520,7 @@
                     lightPurple: 'FFF0EDF7', lightGray: 'FFF4F6F9',
                     border: 'FFD1D1D1', white: 'FFFFFFFF', muted: 'FF666666'
                 };
-                const fillSolid = (argb) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: argb } });
+                const fillSolid = argb => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
                 const centerAlign = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 const leftAlign = { horizontal: 'left', vertical: 'middle', wrapText: true };
                 const thinBorder = {
@@ -7468,7 +7530,7 @@
                     right: { style: 'thin', color: { argb: C.border } }
                 };
                 const numFmt3 = '0.###';
-                const round3 = (n) => Math.round(n * 1000) / 1000;
+                const round3 = value => Math.round(value * 1000) / 1000;
 
                 const ws = workbook.addWorksheet('Pesos Min Méd Máx', { views: [{ showGridLines: false }] });
                 ws.columns = [
@@ -7476,26 +7538,26 @@
                 ];
 
                 ws.mergeCells('A1:F1');
-                const t = ws.getCell('A1');
-                t.value = 'DONA RITA EMBALAGENS';
-                t.font = { name: 'Calibri', size: 18, bold: true, color: { argb: C.white } };
-                t.fill = fillSolid(C.primary);
-                t.alignment = centerAlign;
+                const titleCell = ws.getCell('A1');
+                titleCell.value = 'DONA RITA EMBALAGENS';
+                titleCell.font = { name: 'Calibri', size: 18, bold: true, color: { argb: C.white } };
+                titleCell.fill = fillSolid(C.primary);
+                titleCell.alignment = centerAlign;
                 ws.getRow(1).height = 30;
 
                 ws.mergeCells('A2:F2');
-                const s2 = ws.getCell('A2');
-                s2.value = 'Tabela de Pesos — Mínimo, Média e Máximo por Produto';
-                s2.font = { name: 'Calibri', size: 13, bold: true, color: { argb: C.secondary } };
-                s2.alignment = centerAlign;
-                ws.getRow(2).height = 22;
+                const subtitleCell = ws.getCell('A2');
+                subtitleCell.value = `Tabela de Pesos — Mínimo, Média e Máximo por Produto · ${monthLabel}`;
+                subtitleCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: C.secondary } };
+                subtitleCell.alignment = centerAlign;
+                ws.getRow(2).height = 24;
 
                 ws.mergeCells('A3:F3');
-                const s3 = ws.getCell('A3');
-                s3.value = `Todos os produtos · ${rows.length} produto(s) · ${totalMeasurements} pesagem(ns) · Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
-                s3.font = { name: 'Calibri', size: 10, color: { argb: C.muted } };
-                s3.alignment = centerAlign;
-                ws.getRow(3).height = 18;
+                const infoCell = ws.getCell('A3');
+                infoCell.value = `Período: ${startDate.split('-').reverse().join('/')} a ${endDate.split('-').reverse().join('/')} · ${rows.length} produto(s) · ${totalMeasurements} pesagem(ns) · Gerado em ${new Date().toLocaleString('pt-BR')}`;
+                infoCell.font = { name: 'Calibri', size: 10, color: { argb: C.muted } };
+                infoCell.alignment = centerAlign;
+                ws.getRow(3).height = 20;
 
                 const headerRow = ws.getRow(4);
                 headerRow.values = ['Produto', 'Tipo', 'Mínimo', 'Média', 'Máximo', 'Qtd. Pesagens'];
@@ -7507,50 +7569,55 @@
                 });
                 headerRow.height = 22;
 
-                let r = 5;
-                rows.forEach(s => {
-                    const vals = s.values;
-                    const pMin = Math.min(...vals);
-                    const pMax = Math.max(...vals);
-                    const pAvg = vals.reduce((a, b) => a + b, 0) / vals.length;
-                    const dataRow = ws.getRow(r);
-                    dataRow.values = [s.name, s.type, round3(pMin), round3(pAvg), round3(pMax), vals.length];
+                let rowIndex = 5;
+                rows.forEach(item => {
+                    const values = item.values;
+                    const minValue = Math.min(...values);
+                    const maxValue = Math.max(...values);
+                    const avgValue = values.reduce((sum, value) => sum + value, 0) / values.length;
+                    const dataRow = ws.getRow(rowIndex);
+                    dataRow.values = [item.name, item.type, round3(minValue), round3(avgValue), round3(maxValue), values.length];
                     dataRow.eachCell((cell, colNumber) => {
                         cell.border = thinBorder;
                         if (colNumber === 1) {
                             cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: C.primary } };
                             cell.alignment = leftAlign;
-                        } else if (colNumber === 2) {
-                            cell.font = { name: 'Calibri', size: 10, color: { argb: C.primary } };
-                            cell.alignment = centerAlign;
                         } else {
                             cell.font = { name: 'Calibri', size: 10, color: { argb: C.primary } };
                             cell.alignment = centerAlign;
-                            cell.numFmt = numFmt3;
+                            if (colNumber >= 3 && colNumber <= 5) cell.numFmt = numFmt3;
                         }
                     });
                     dataRow.height = 19;
-                    r++;
+                    rowIndex++;
                 });
 
                 ws.views = [{ state: 'frozen', ySplit: 4, showGridLines: false }];
-                ws.autoFilter = { from: 'A4', to: 'F' + (r - 1) };
+                ws.autoFilter = { from: 'A4', to: `F${rowIndex - 1}` };
 
                 const buffer = await workbook.xlsx.writeBuffer();
-                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Pesos_Min_Med_Max_${new Date().toISOString().split('T')[0]}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `Pesos_Min_Med_Max_${monthValue}.xlsx`;
+                document.body.appendChild(anchor);
+                anchor.click();
+                document.body.removeChild(anchor);
                 setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+                closeMinMedMaxModal();
             } catch (error) {
                 console.error('Erro ao gerar Excel de pesos:', error);
                 alert('❌ Erro ao gerar Excel.\n' + (error && error.message ? error.message : ''));
             } finally {
                 hideLoading();
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = originalButtonText;
+                }
             }
         }
 
@@ -8094,6 +8161,11 @@
                 const excelModal = document.getElementById('excel-report-modal');
                 if (excelModal && excelModal.style.display === 'flex') {
                     closeExcelReportModal();
+                    return;
+                }
+                const minMedMaxModal = document.getElementById('min-med-max-modal');
+                if (minMedMaxModal && minMedMaxModal.style.display === 'flex') {
+                    closeMinMedMaxModal();
                     return;
                 }
                 const productExcelModal = document.getElementById('product-excel-modal');
